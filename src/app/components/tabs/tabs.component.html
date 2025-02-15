@@ -1,11 +1,10 @@
 <!-- filepath: src/app/components/tabs/tabs.component.html -->
-<div class="container mt-5">
-  <div class="tabs">
+<div class="container-fluid h-100 d-flex flex-column">
+  <div class="tabs flex-grow-1">
     <ul class="nav nav-tabs" id="myTab" role="tablist">
       <li class="nav-item" *ngFor="let tab of tabs">
         <a class="nav-link" [class.active]="tab === selectedTab" (click)="selectTab(tab)">
           {{ tab.title }}
-          <app-contact-info *ngIf="tab.isContact"></app-contact-info>
           <div *ngIf="showEditMenu && !tab.isContact" class="tab-buttons">
             <button class="btn btn-sm btn-primary" (click)="editTab(tab)" title="Edit Tab">✏️</button>
             <button class="btn btn-sm btn-danger" (click)="deleteTab(tab)" title="Delete Tab">❌</button>
@@ -19,8 +18,8 @@
         </span>
       </li>
     </ul>
-    <div class="tab-content" id="myTabContent">
-      <div class="tab-pane fade show active" *ngIf="selectedTab">
+    <div class="tab-content flex-grow-1" id="myTabContent">
+      <div class="tab-pane fade show active h-100" *ngIf="selectedTab">
         <ng-container *ngIf="selectedTab.isContact; else tableContent">
           <p>{{ selectedTab.content }}</p>
         </ng-container>
