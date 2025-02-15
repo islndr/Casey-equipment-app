@@ -4,7 +4,8 @@ import { Storage, ref, uploadBytes, getDownloadURL } from '@angular/fire/storage
 @Component({
   selector: 'app-spec-sheet-table',
   templateUrl: './spec-sheet-table.component.html',
-  styleUrls: ['./spec-sheet-table.component.scss']
+  styleUrls: ['./spec-sheet-table.component.css'],
+  standalone: true
 })
 export class SpecSheetTableComponent {
   constructor(private storage: Storage) {}
