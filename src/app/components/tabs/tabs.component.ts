@@ -1,6 +1,5 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ContactInfoComponent } from '../contact-info/contact-info.component';
 import { TabsService } from '../../services/tabs.service';
 import { Observable } from 'rxjs';
 
@@ -14,7 +13,7 @@ interface Tab {
 @Component({
   selector: 'app-tabs',
   standalone: true,
-  imports: [CommonModule, ContactInfoComponent],
+  imports: [CommonModule],
   templateUrl: './tabs.component.html',
   styleUrls: ['./tabs.component.css']
 })
@@ -77,3 +76,8 @@ export class TabsComponent implements OnInit {
     this.selectedTab = tab;
   }
 }
+
+
+
+
+
