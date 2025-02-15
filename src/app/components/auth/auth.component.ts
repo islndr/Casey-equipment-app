@@ -1,23 +1,40 @@
 // 🚀 Login Component (Standalone)
 // This component is used for authentication and does not rely on a module
 import { Component } from '@angular/core';
-import { Auth, signInWithEmailAndPassword } from '@angular/fire/auth';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
+import { AuthService } from '../../services/auth.service'; // Import AuthService
 
 @Component({
   selector: 'app-auth',
   templateUrl: './auth.component.html',
   styleUrls: ['./auth.component.css'],
   standalone: true, // ✅ Standalone component (no NgModule)
-  imports: [CommonModule], // ✅ Uses Angular common module
+  imports: [CommonModule, FormsModule], // ✅ Uses Angular common module
 })
 export class AuthComponent {
-  constructor(private auth: Auth) {}
+  email: string = '';
+  password: string = '';
+  rememberMe: boolean = false;
 
-  login(email: string, password: string) {
-    signInWithEmailAndPassword(this.auth, email, password)
-      .then(user => console.log('Logged in:', user))
-      .catch(error => console.error('Login error:', error));
+  constructor(private authService: AuthService, private router: Router) {}
+
+  login() {
+    this.authService.login(this.email, this.password, this.rememberMe)
+      .then(() => {
+        console.log('✅ Login Successful');
+        this.router.navigate(['/dashboard']);
+      })
+      .catch((error: unknown) => {
+        if (error instanceof Error) {
+          console.error('❌ Login Error:', error.message);
+          alert(`Login failed: ${error.message}`);
+        } else {
+          console.error('❌ Unknown Login Error:', error);
+          alert('An unknown error occurred during login.');
+        }
+      });
   }
 }
 
