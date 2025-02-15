@@ -1,8 +1,11 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ContactInfoComponent } from '../contact-info/contact-info.component';
+import { TabsService } from '../../services/tabs.service';
+import { Observable } from 'rxjs';
 
 interface Tab {
+  id?: string;
   title: string;
   content: string;
   isContact: boolean;
@@ -15,14 +18,21 @@ interface Tab {
   templateUrl: './tabs.component.html',
   styleUrls: ['./tabs.component.css']
 })
-export class TabsComponent {
-  tabs: Tab[] = [
-    { title: 'Spec Sheets', content: 'Spec sheet content goes here', isContact: false },
-    { title: 'Contact Info', content: 'Contact info content goes here', isContact: true }
-  ];
-
+export class TabsComponent implements OnInit {
+  tabs: Tab[] = [];
   selectedTab: Tab | null = null;
   showEditMenu = false;
+
+  constructor(private tabsService: TabsService) {}
+
+  ngOnInit() {
+    this.tabsService.getTabs().subscribe(data => {
+      this.tabs = data;
+      if (this.tabs.length) {
+        this.selectedTab = this.tabs[0];
+      }
+    });
+  }
 
   toggleEditMenu() {
     this.showEditMenu = !this.showEditMenu;
@@ -32,26 +42,32 @@ export class TabsComponent {
     const newTitle = prompt('Enter new tab title', 'New Tab');
     if (newTitle) {
       const newTab: Tab = { title: newTitle, content: 'New tab content', isContact: false };
-      this.tabs.splice(this.tabs.length - 1, 0, newTab); // Insert before the last tab (Contact tab)
-      this.selectedTab = newTab;
+      this.tabsService.addTab(newTab).then(() => {
+        this.tabs.push(newTab);
+        this.selectedTab = newTab;
+      });
     }
   }
 
   editTab(tab: Tab) {
     const newTitle = prompt('Enter new title', tab.title);
     if (newTitle) {
-      tab.title = newTitle;
+      this.tabsService.updateTab(tab.id!, { title: newTitle }).then(() => {
+        tab.title = newTitle;
+      });
     }
   }
 
   deleteTab(tab: Tab) {
     const verification = prompt('Enter 99 to delete this tab');
     if (verification === '99') {
-      const index = this.tabs.indexOf(tab);
-      if (index > -1) {
-        this.tabs.splice(index, 1);
-        this.selectedTab = this.tabs.length ? this.tabs[0] : null;
-      }
+      this.tabsService.deleteTab(tab.id!).then(() => {
+        const index = this.tabs.indexOf(tab);
+        if (index > -1) {
+          this.tabs.splice(index, 1);
+          this.selectedTab = this.tabs.length ? this.tabs[0] : null;
+        }
+      });
     } else {
       alert('Incorrect verification code. Tab not deleted.');
     }
