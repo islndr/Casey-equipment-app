@@ -11,7 +11,7 @@ interface Tab {
 @Component({
   selector: 'app-tabs',
   standalone: true,
-  imports: [CommonModule, ContactInfoComponent,],
+  imports: [CommonModule, ContactInfoComponent],
   templateUrl: './tabs.component.html',
   styleUrls: ['./tabs.component.css']
 })
@@ -45,13 +45,15 @@ export class TabsComponent {
   }
 
   deleteTab(tab: Tab) {
-    const confirmed = confirm('Are you sure you want to delete this tab?');
-    if (confirmed) {
+    const verification = prompt('Enter 99 to delete this tab');
+    if (verification === '99') {
       const index = this.tabs.indexOf(tab);
       if (index > -1) {
         this.tabs.splice(index, 1);
         this.selectedTab = this.tabs.length ? this.tabs[0] : null;
       }
+    } else {
+      alert('Incorrect verification code. Tab not deleted.');
     }
   }
 
