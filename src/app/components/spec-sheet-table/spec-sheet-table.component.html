@@ -1,17 +1,26 @@
-<h3>Spec</h3><table class="table table-striped">
+<h3>Spec</h3>
+<table class="table table-striped">
   <thead>
     <tr>
-      <th>Column 1</th>
-      <th>Column 2</th>
-      <th>Column 3</th>
+      <th *ngFor="let column of columns">
+        {{ column }}
+        <button class="btn btn-sm btn-primary" (click)="editColumn(column)">Edit</button>
+        <button class="btn btn-sm btn-danger" (click)="deleteColumn(column)">Delete</button>
+      </th>
+      <th>Actions</th>
     </tr>
   </thead>
   <tbody>
-    <tr>
-      <td>Data 1</td>
-      <td>Data 2</td>
-      <td>Data 3</td>
+    <tr *ngFor="let spec of specs; let index = index">
+      <td *ngFor="let column of columns">
+        <input [(ngModel)]="spec[column]" (ngModelChange)="editSpec(spec, column, $event)" />
+      </td>
+      <td>
+        <button class="btn btn-primary btn-sm" (click)="saveSpec(spec, index, $event)">Save</button>
+        <button class="btn btn-danger btn-sm" (click)="deleteSpec(spec)">Delete</button>
+      </td>
     </tr>
-    <!-- Add more rows as needed -->
   </tbody>
 </table>
+<button class="btn btn-success" (click)="addSpec()">Add Row</button>
+<button class="btn btn-info" (click)="addColumn()">Add Column</button>

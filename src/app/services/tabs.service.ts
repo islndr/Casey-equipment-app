@@ -37,3 +37,4 @@ export class TabsService {
     return deleteDoc(tabDoc);
   }
 }
+
