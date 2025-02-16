@@ -1,12 +1,13 @@
 import { Routes } from '@angular/router';
-import { AppComponent } from './app.component';
 import { AuthComponent } from './components/auth/auth.component';
 import { AdminDashboardComponent } from './components/admin-dashboard/admin-dashboard.component';
+import { TabsComponent } from './components/tabs/tabs.component';
 
 export const routes: Routes = [
-  { path: '', component: AppComponent },
+  { path: '', redirectTo: '/auth', pathMatch: 'full' },
   { path: 'auth', component: AuthComponent },
-  { path: 'admin', component: AdminDashboardComponent },
   { path: 'dashboard', component: AdminDashboardComponent },
+  { path: 'tabs', component: TabsComponent },
+  // Add more routes as needed
 ];
 
