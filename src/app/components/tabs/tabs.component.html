@@ -20,28 +20,7 @@
     </ul>
     <div class="tab-content flex-grow-1" id="myTabContent">
       <div class="tab-pane fade show active h-100" *ngIf="selectedTab">
-        <ng-container *ngIf="selectedTab.isContact; else tableContent">
-          <p>{{ selectedTab.content }}</p>
-        </ng-container>
-        <ng-template #tableContent>
-          <table class="table table-striped">
-            <thead>
-              <tr>
-                <th>Column 1</th>
-                <th>Column 2</th>
-                <th>Column 3</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td>Data 1</td>
-                <td>Data 2</td>
-                <td>Data 3</td>
-              </tr>
-              <!-- Add more rows as needed -->
-            </tbody>
-          </table>
-        </ng-template>
+        <app-spec-sheet-table></app-spec-sheet-table>
       </div>
     </div>
   </div>

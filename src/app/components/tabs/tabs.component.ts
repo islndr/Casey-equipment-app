@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { TabsService } from '../../services/tabs.service';
 import { Observable } from 'rxjs';
+import { SpecSheetTableComponent } from '../spec-sheet-table/spec-sheet-table.component';
 
 interface Tab {
   id?: string;
@@ -13,7 +14,7 @@ interface Tab {
 @Component({
   selector: 'app-tabs',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, SpecSheetTableComponent],
   templateUrl: './tabs.component.html',
   styleUrls: ['./tabs.component.css']
 })

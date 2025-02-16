@@ -22,3 +22,6 @@ bootstrapApplication(AppComponent, {
     provideStorage(() => getStorage()), 
   ]
 }).catch(err => console.error(err));
+
+
+
