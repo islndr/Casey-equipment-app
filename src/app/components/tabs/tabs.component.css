@@ -25,8 +25,8 @@
   cursor: pointer;
 }
 
-.nav-link.active {
-  background-color: #007bff;
+.nav-link.active, .nav-link:hover {
+  background-color: #deb408;
   color: white;
 }
 
@@ -42,23 +42,41 @@
   align-items: center;
 }
 
-.edit-menu .nav-link {
-  cursor: pointer;
-  background-color: transparent;
-  color: #007bff;
-}
+
 
 .edit-menu .nav-link span {
   margin-left: 10px;
   font-size: 1.2em;
 }
 
-.edit-menu .nav-link .add-tab {
-  color: green;
-}
 
 .btn {
   margin-left: 5px;
   padding: 2px 5px;
   font-size: 0.9em;
+}
+
+/* Custom Styles for No Background and No Border */
+.no-bg-border {
+  background-color: transparent !important; /* Remove background */
+  border: none !important; /* Remove border */
+  color: #dc3545; /* Red color for the text */
+  padding: 0; /* Remove padding */
+  font-size: 1.2em; /* Increase font size if needed */
+}
+
+.btn-danger {
+  background-color: transparent !important; /* Remove background */
+  border: none !important; /* Remove border */
+  color: #dc3545; /* Red color for the text */
+  padding: 0; /* Remove padding */
+  font-size: 1.2em; /* Increase font size if needed */
+}
+
+.btn-primary {
+  background-color: transparent !important; /* Remove background */
+  border: none !important; /* Remove border */
+  color: #007bff; /* Blue color for the text */
+  padding: 0; /* Remove padding */
+  font-size: 1.2em; /* Increase font size if needed */
 }

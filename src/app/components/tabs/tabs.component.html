@@ -7,15 +7,15 @@
           {{ tab.title }}
           <div *ngIf="showEditMenu && !tab.isContact" class="tab-buttons">
             <button class="btn btn-sm btn-primary" (click)="editTab(tab)" title="Edit Tab">✏️</button>
-            <button class="btn btn-sm btn-danger" (click)="deleteTab(tab)" title="Delete Tab">❌</button>
+            <button class="btn btn-sm btn-danger no-bg-border" (click)="deleteTab(tab)" title="Delete Tab">❌</button>
           </div>
         </a>
       </li>
       <li class="nav-item edit-menu">
-        <span class="nav-link" (click)="toggleEditMenu()">Edit Tabs</span>
-        <span *ngIf="showEditMenu" class="nav-link">
-          <span (click)="addTab()" class="add-tab" title="Add Tab">➕</span>
-        </span>
+
+        <span (click)="addTab()" class="btn add-tab" title="Add Tab" *ngIf="showEditMenu" >➕ Tab</span>
+        <span class="btn nav-link" (click)="toggleEditMenu()">Edit Tabs</span>
+       
       </li>
     </ul>
     <div class="tab-content flex-grow-1" id="myTabContent">

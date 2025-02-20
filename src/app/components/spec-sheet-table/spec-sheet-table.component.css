@@ -1,0 +1,116 @@
+.tabs {
+  border: 1px solid #ddd;
+  padding: 15px;
+  margin: 20px;
+  border-radius: 5px;
+  background-color: #f9f9f9;
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  flex-direction: row;
+  margin-bottom: 10px;
+}
+
+.nav-link {
+  margin-right: 10px;
+  display: flex;
+  align-items: center;
+  padding: 5px 10px;
+  border-radius: 3px;
+  background-color: #e9ecef;
+  color: #495057;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.nav-link.active {
+  background-color: #deb408;
+  color: white;
+}
+
+.tab-buttons {
+  display: flex;
+  justify-content: center;
+  margin-left: 10px;
+}
+
+.edit-menu {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+}
+
+.edit-menu .nav-link {
+  cursor: pointer;
+  background-color: transparent;
+  color: #007bff;
+}
+
+.edit-menu .nav-link span {
+  margin-left: 10px;
+  font-size: 1.2em;
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  flex-direction: row;
+  margin-bottom: 10px;
+}
+
+.nav-link {
+  margin-right: 10px;
+  display: flex;
+  align-items: center;
+  padding: 5px 10px;
+  border-radius: 3px;
+  background-color: #e9ecef;
+  color: #495057;
+  text-decoration: none;
+  cursor: pointer;
+  text-transform: uppercase;
+}
+
+.nav-link.active, .nav-link:hover {
+  background-color: #deb408;
+  color: white;
+}
+
+.edit-table-menu {
+  display: flex;
+  justify-content: flex-end; /* Align the button to the far right */
+  margin-bottom: 10px;
+}
+
+.btn {
+  margin-left: 5px;
+  padding: 2px 5px;
+  font-size: 0.9em;
+}
+
+/* Custom Styles for No Background and No Border */
+.no-bg-border {
+  background-color: transparent !important; /* Remove background */
+  border: none !important; /* Remove border */
+  color: #dc3545; /* Red color for the text */
+  padding: 0; /* Remove padding */
+  font-size: 1.2em; /* Increase font size if needed */
+}
+
+.btn-danger {
+  background-color: transparent !important; /* Remove background */
+  border: none !important; /* Remove border */
+  color: #dc3545 !important; /* Red color for the text */
+  padding: 0; /* Remove padding */
+  font-size: 1.2em; /* Increase font size if needed */
+}
+
+.btn-primary {
+  background-color: transparent !important; /* Remove background */
+  border: none !important; /* Remove border */
+  color: #007bff !important; /* Blue color for the text */
+  padding: 0; /* Remove padding */
+  font-size: 1.2em; /* Increase font size if needed */
+}

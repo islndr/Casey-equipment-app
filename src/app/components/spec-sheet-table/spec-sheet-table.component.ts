@@ -15,6 +15,9 @@ export class SpecSheetTableComponent implements OnInit {
   @Input() tabId: string | null = null;
   specs: Spec[] = [];
   columns: string[] = ['column1', 'column2', 'column3']; // Define the columns property
+  showEditTable: boolean = false; // Add a property to toggle edit mode
+  tabs: any[] = []; // Define the tabs property
+  selectedTab: number = 0; // Add a property to track the selected tab
 
   constructor(private specService: SpecService) {}
 
@@ -24,6 +27,16 @@ export class SpecSheetTableComponent implements OnInit {
         this.specs = data;
       });
     }
+    // Initialize tabs (example data, replace with actual data)
+    this.tabs = [
+      { title: 'Tab 1', id: 'tab1' },
+      { title: 'Tab 2', id: 'tab2' },
+      { title: 'Tab 3', id: 'tab3' }
+    ];
+  }
+
+  toggleEditTable() {
+    this.showEditTable = !this.showEditTable;
   }
 
   addSpec() {
@@ -44,22 +57,22 @@ export class SpecSheetTableComponent implements OnInit {
   }
 
   deleteSpec(spec: Spec) {
-    this.specService.deleteSpec(this.tabId!, spec.id!).then(() => {
-      this.specs = this.specs.filter(s => s.id !== spec.id);
-    });
-  }
-
-  saveSpec(spec: Spec, index: number, event: Event) {
-    // Implement save logic here
-    console.log(`Saving spec at index ${index}`, spec);
+    const specIndex = this.specs.indexOf(spec);
+    if (specIndex > -1) {
+      this.specs.splice(specIndex, 1);
+      this.specService.deleteSpec(this.tabId!, spec.id!);
+    }
   }
 
   addColumn() {
-    const newColumn = `column${this.columns.length + 1}`;
-    this.columns.push(newColumn);
-    this.specs.forEach(spec => {
-      spec[newColumn] = '';
-    });
+    const newColumnName = prompt('Enter new column name');
+    if (newColumnName) {
+      const newColumn = newColumnName;
+      this.columns.push(newColumn);
+      this.specs.forEach(spec => {
+        spec[newColumn] = '';
+      });
+    }
   }
 
   editColumn(column: string) {
@@ -84,5 +97,9 @@ export class SpecSheetTableComponent implements OnInit {
         delete spec[column];
       });
     }
+  }
+
+  selectTab(index: number) {
+    this.selectedTab = index;
   }
 }

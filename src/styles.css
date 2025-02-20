@@ -1,1 +1,73 @@
 /* You can add global styles to this file, and also import other style files */
+
+/* Import Bootstrap */
+@import '../node_modules/bootstrap/dist/css/bootstrap.min.css';
+
+/* Global Styles */
+body {
+  font-family: 'Lato', sans-serif; /* Use the Lato font family */
+  text-transform: uppercase; /* Transform text to uppercase */
+  background-color: #f8f9fa; /* Light background color */
+  color: #333; /* Dark text color */
+}
+
+/* Header Styles */
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Lato', sans-serif; /* Use the Lato font family for headers */
+  color: #0056b3; /* Primary color for headers */
+}
+.btn {
+  font-family: 'Lato', sans-serif; /* Use the Lato font family for buttons */
+  text-transform: uppercase;
+}
+
+/* Button Styles */
+.btn-primary {
+  background-color: #0056b3; /* Primary button color */
+  border-color: #0056b3; /* Primary button border color */
+}
+
+.btn-primary:hover {
+  background-color: #004494; /* Darker shade for hover state */
+  border-color: #004494; /* Darker shade for hover state */
+}
+
+.btn-danger {
+  background-color: #dc3545; /* Danger button color */
+  border-color: #dc3545; /* Danger button border color */
+}
+
+.btn-danger:hover {
+  background-color: #c82333; /* Darker shade for hover state */
+  border-color: #bd2130; /* Darker shade for hover state */
+}
+
+/* Table Styles */
+.table-striped tbody tr:nth-of-type(odd) {
+  background-color: rgba(0, 86, 179, 0.05); /* Light blue background for odd rows */
+}
+
+.table-striped tbody tr:nth-of-type(even) {
+  background-color: rgba(0, 86, 179, 0.1); /* Slightly darker blue background for even rows */
+}
+
+/* Form Styles */
+input[type="text"], input[type="email"], input[type="password"], textarea {
+  border: 1px solid #0056b3; /* Blue border for form inputs */
+  border-radius: 4px; /* Rounded corners */
+  padding: 10px; /* Padding for inputs */
+  font-family: 'Lato', sans-serif; /* Use the Lato font family */
+}
+
+/* Custom Styles for Specific Components */
+.app-spec-sheet-table {
+  margin-top: 20px; /* Add margin to the top of the spec sheet table */
+}
+
+.app-spec-sheet-table h3 {
+  color: #0056b3; /* Primary color for the spec sheet table header */
+}
+
+.app-spec-sheet-table .btn {
+  margin-right: 5px; /* Add margin to the right of buttons */
+}

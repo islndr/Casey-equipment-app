@@ -1,11 +1,16 @@
 <h3>Spec</h3>
+<div class="edit-table-menu">
+  <span (click)="addSpec()" class="btn add-tab" title="Add Row" *ngIf="showEditTable">➕ Row</span>
+  <span (click)="addColumn()" class="btn add-tab" title="Add Column" *ngIf="showEditTable">➕ Column</span>
+  <button class="btn nav-link" (click)="toggleEditTable()">Edit Table</button>
+</div>
 <table class="table table-striped">
   <thead>
     <tr>
       <th *ngFor="let column of columns">
         {{ column }}
-        <button class="btn btn-sm btn-primary" (click)="editColumn(column)">Edit</button>
-        <button class="btn btn-sm btn-danger" (click)="deleteColumn(column)">Delete</button>
+        <button class="btn btn-primary no-bg-border btn-sm" *ngIf="showEditTable" (click)="editColumn(column)">✏️</button>
+        <button class="btn btn-danger no-bg-border btn-sm" *ngIf="showEditTable" (click)="deleteColumn(column)">❌</button>
       </th>
       <th>Actions</th>
     </tr>
@@ -16,11 +21,8 @@
         <input [(ngModel)]="spec[column]" (ngModelChange)="editSpec(spec, column, $event)" />
       </td>
       <td>
-        <button class="btn btn-primary btn-sm" (click)="saveSpec(spec, index, $event)">Save</button>
-        <button class="btn btn-danger btn-sm" (click)="deleteSpec(spec)">Delete</button>
+        <button class="btn btn-danger no-bg-border btn-sm" *ngIf="showEditTable" (click)="deleteSpec(spec)">❌</button>
       </td>
     </tr>
   </tbody>
 </table>
-<button class="btn btn-success" (click)="addSpec()">Add Row</button>
-<button class="btn btn-info" (click)="addColumn()">Add Column</button>
