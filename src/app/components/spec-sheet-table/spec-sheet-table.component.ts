@@ -68,10 +68,12 @@ import { MatTableModule } from '@angular/material/table';
       });
     }
   
-    /** ✅ Update Combined Columns (excluding ID in UI) */
-    updateCombinedColumns() {
-      this.combinedColumns = ['select', ...this.displayedColumns.map(col => col.field), 'pdfLink', 'actions'];
-    }
+/** ✅ Update Combined Columns (Exclude ID for Display) */
+updateCombinedColumns() {
+  this.combinedColumns = ['select', ...this.displayedColumns
+    .filter(col => col.field !== 'id') // Exclude 'id' from displayed columns
+    .map(col => col.field), 'pdfLink',];
+}
   
     /** ✅ Add New Row */
     addRow() {
@@ -125,14 +127,16 @@ import { MatTableModule } from '@angular/material/table';
         this.selectedRows = this.selectedRows.filter(r => r.id !== row.id);
       }
     }
-    /** ✅ Select/Deselect All Rows */
-toggleSelectAll(event: any) {
-  const isChecked = event.checked;
-  this.dataSource.data.forEach(row => row.selected = isChecked);
-  this.selectedRows = isChecked ? [...this.dataSource.data] : [];
-}
    
+
  
+    /** ✅ Toggle Select All */
+    toggleSelectAll(event: any) {
+      const isChecked = event.checked;
+      this.dataSource.data.forEach(row => (row.selected = isChecked));
+      this.selectedRows = isChecked ? [...this.dataSource.data] : [];
+    }
+  
   
     /** ✅ Add New Column */
     addColumn() {
@@ -161,6 +165,16 @@ toggleSelectAll(event: any) {
       const columnsRef = doc(this.firestore, `specSheetColumns/${field}`);
       deleteDoc(columnsRef);
     }
+     /** ✅ Edit Column Name */
+     editColumnName(column: any) {
+      const newHeaderName = prompt('Enter new column name:', column.headerName);
+      if (newHeaderName && newHeaderName.trim() !== '') {
+        column.headerName = newHeaderName;
+        const columnsRef = doc(this.firestore, `specSheetColumns/${column.field}`);
+        setDoc(columnsRef, column);
+        this.updateCombinedColumns();
+      }
+    }
   
     /** ✅ Upload PDF */
     async uploadPDF(row: any) {
@@ -187,3 +201,5 @@ toggleSelectAll(event: any) {
 
 
 
+
+  
