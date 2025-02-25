@@ -9,10 +9,10 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
 import { Firestore, collection, collectionData, doc, setDoc, deleteDoc } from '@angular/fire/firestore';
 import { MatTableModule } from '@angular/material/table';
-
+import { SafePipe } from '../safe.pipe';
 @Component({
   selector: 'app-spec-sheet-table',
   standalone: true,
@@ -27,8 +27,10 @@ import { MatTableModule } from '@angular/material/table';
     MatButtonModule,
     MatIconModule,
     MatTooltipModule,
-    MatTableModule
+    MatTableModule,
+    SafePipe
   ]
+ 
 })
 export class SpecSheetTableComponent implements OnInit {
   displayedColumns: any[] = [];
@@ -36,6 +38,8 @@ export class SpecSheetTableComponent implements OnInit {
   dataSource = new MatTableDataSource<any>([]);
   selectedRows: any[] = [];
   editingRowId: string | null = null;
+  pdfModalOpen: boolean = false;
+  selectedPDFRow: any = null;
 
   constructor(private firestore: Firestore) {}
 
@@ -49,7 +53,7 @@ export class SpecSheetTableComponent implements OnInit {
     const columnsRef = collection(this.firestore, 'specSheetColumns');
     collectionData(columnsRef).subscribe((columns: any[]) => {
       this.displayedColumns = columns.filter(col => col?.field && col?.headerName);
-      this.displayedColumns.sort((a, b) => (a.order ?? 0) - (b.order ?? 0)); // Sort by order
+      this.displayedColumns.sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
       if (this.displayedColumns.length === 0) {
         this.displayedColumns = [
           { headerName: 'Title', field: 'title', order: 1 },
@@ -146,7 +150,6 @@ export class SpecSheetTableComponent implements OnInit {
     const sanitizedField = newColumnName.toLowerCase().replace(/\s+/g, '_');
     const newCol = { headerName: newColumnName, field: sanitizedField, order: columnOrder };
 
-    // Adjust existing columns if order overlaps
     this.displayedColumns.forEach(col => {
       if (col.order >= columnOrder) col.order += 1;
     });
@@ -185,8 +188,25 @@ export class SpecSheetTableComponent implements OnInit {
   }
 
   /** ✅ Upload PDF */
+
   async uploadPDF(row: any) {
     const input = document.createElement('input');
+input.type = 'file';
+input.accept = 'application/pdf';
+
+input.onchange = async (event: any) => {
+  const file = event.target.files[0];
+  if (file) {
+    const sanitizedFileName = file.name.replace(/\s+/g, '_');
+    const storage = getStorage();
+    const storageRef = ref(storage, `pdfs/${sanitizedFileName}`);
+    await uploadBytes(storageRef, file);
+    const downloadURL = await getDownloadURL(storageRef);
+
+    row.pdfLink = downloadURL;
+    this.saveRow(row);
+  }
+};
     input.type = 'file';
     input.accept = 'application/pdf';
 
@@ -204,5 +224,43 @@ export class SpecSheetTableComponent implements OnInit {
     };
 
     input.click();
+  }
+
+  /** ✅ View PDF in Modal */
+  viewPDF(row: any) {
+    this.selectedPDFRow = row;
+    this.pdfModalOpen = true;
+  }
+
+  /** ✅ Replace PDF */
+  async replacePDF() {
+    if (!this.selectedPDFRow) return;
+    this.uploadPDF(this.selectedPDFRow);
+  }
+
+  /** ✅ Delete PDF */
+  async deletePDF() {
+    if (!this.selectedPDFRow) return;
+
+    const storage = getStorage();
+    const filePath = decodeURIComponent(
+      this.selectedPDFRow.pdfLink.split('/o/')[1].split('?')[0]
+    );
+    const fileRef = ref(storage, filePath);
+
+    try {
+      await deleteObject(fileRef);
+      this.selectedPDFRow.pdfLink = '';
+      this.saveRow(this.selectedPDFRow);
+      this.pdfModalOpen = false;
+    } catch (error) {
+      console.error('Error deleting PDF:', error);
+    }
+  }
+
+  /** ✅ Close PDF Modal */
+  closePDFModal() {
+    this.pdfModalOpen = false;
+    this.selectedPDFRow = null;
   }
 }
