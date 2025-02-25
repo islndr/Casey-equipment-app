@@ -1,18 +1,18 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { SpecSheetTableComponent } from './spec-sheet-table.component';
+import { AdminPanelComponent } from './admin-panel.component';
 
-describe('SpecSheetTableComponent', () => {
-  let component: SpecSheetTableComponent;
-  let fixture: ComponentFixture<SpecSheetTableComponent>;
+describe('AdminPanelComponent', () => {
+  let component: AdminPanelComponent;
+  let fixture: ComponentFixture<AdminPanelComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [SpecSheetTableComponent]
+      imports: [AdminPanelComponent]
     })
     .compileComponents();
 
-    fixture = TestBed.createComponent(SpecSheetTableComponent);
+    fixture = TestBed.createComponent(AdminPanelComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

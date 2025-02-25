@@ -8,6 +8,6 @@ export const appConfig = {
   providers: [
     provideFirebaseApp(() => initializeApp(environment.firebaseConfig)),
     provideFirestore(() => getFirestore()),
-    provideStorage(() => getStorage()), provideAnimationsAsync()
+    provideStorage(() => getStorage()), provideAnimationsAsync(), provideAnimationsAsync()
   ]
 };
