@@ -1,4 +1,5 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, HostListener } from '@angular/core';
+import { v4 as uuidv4 } from 'uuid';
 import { MatTableDataSource } from '@angular/material/table';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -28,133 +29,161 @@ import { MatTableModule } from '@angular/material/table';
     MatTableModule // Import MatTableModule
 
   ]
-})
-export class SpecSheetTableComponent implements OnInit {
-  displayedColumns: any[] = [
-    { field: 'id', headerName: 'ID' },
-    { field: 'title', headerName: 'Title' },
-    { field: 'description', headerName: 'Description' }
-  ];
-
-  rowData: any[] = [];
-  dataSource = new MatTableDataSource<any>([]);
-  combinedColumns: string[] = ['select', ...this.displayedColumns.map(col => col.field), 'pdfLink', 'actions'];
-  selectedRows: any[] = [];
-
-  constructor(private firestore: Firestore) {}
-
-  ngOnInit(): void {
-    this.loadRows();
-  }
-
-  // ✅ Load Rows from Firestore
-  loadRows(): void {
-    const rowsRef = collection(this.firestore, 'specSheetRows');
-    collectionData(rowsRef, { idField: 'id' }).subscribe((rows: any[]) => {
-      this.rowData = rows;
-      this.dataSource.data = this.rowData;
-    });
-  }
-
-  // ✅ Add New Row
-  addRow(): void {
-    const newRow = { id: Date.now().toString(), title: '', description: '', pdfLink: '', isEditing: true };
-    this.rowData.push(newRow);
-    this.dataSource.data = [...this.rowData];
-  }
-
-  // ✅ Delete Row
-  deleteRow(row: any): void {
-    this.rowData = this.rowData.filter(r => r.id !== row.id);
-    this.dataSource.data = [...this.rowData];
-    const rowRef = doc(this.firestore, `specSheetRows/${row.id}`);
-    deleteDoc(rowRef);
-  }
-
-  // ✅ Edit Row
-  editRow(row: any): void {
-    row.isEditing = true;
-  }
-
-  // ✅ Save Row After Editing
-  saveRow(row: any): void {
-    row.isEditing = false;
-    const rowRef = doc(this.firestore, `specSheetRows/${row.id}`);
-    setDoc(rowRef, row);
-  }
-
-  // ✅ Select/Deselect All Rows
-  toggleSelectAll(event: any): void {
-    const isChecked = event.checked;
-    this.rowData.forEach(row => row.selected = isChecked);
-    this.selectedRows = isChecked ? [...this.rowData] : [];
-  }
-
-  // ✅ Select/Deselect Individual Row
-  toggleRowSelection(row: any): void {
-    if (row.selected) {
-      this.selectedRows.push(row);
-    } else {
-      this.selectedRows = this.selectedRows.filter(r => r.id !== row.id);
+    
+  })
+  export class SpecSheetTableComponent implements OnInit {
+    displayedColumns: any[] = [];
+    combinedColumns: string[] = [];
+    dataSource = new MatTableDataSource<any>([]);
+    selectedRows: any[] = [];
+    editingRowId: string | null = null;
+  
+    constructor(private firestore: Firestore) {}
+  
+    ngOnInit(): void {
+      this.loadColumns();
+      this.loadRows();
     }
-  }
-
-  // ✅ Delete Selected Rows
-  deleteSelectedRows(): void {
-    this.selectedRows.forEach(row => this.deleteRow(row));
-    this.selectedRows = [];
-  }
-
-  // ✅ Add New Column
-  addColumn(): void {
-    const newColumnName = prompt('Enter the new column name:');
-    if (!newColumnName) return;
-
-    const newCol = { field: newColumnName.toLowerCase(), headerName: newColumnName };
-    this.displayedColumns.push(newCol);
-    this.combinedColumns = ['select', ...this.displayedColumns.map(col => col.field), 'pdfLink', 'actions'];
-
-    this.rowData.forEach(row => row[newCol.field] = '');
-    this.dataSource.data = [...this.rowData];
-  }
-
-  // ✅ Delete Column
-  deleteColumn(columnField: string): void {
-    this.displayedColumns = this.displayedColumns.filter(col => col.field !== columnField);
-    this.combinedColumns = ['select', ...this.displayedColumns.map(col => col.field), 'pdfLink', 'actions'];
-
-    this.rowData.forEach(row => delete row[columnField]);
-    this.dataSource.data = [...this.rowData];
-  }
-
-  // ✅ Edit Column Name
-  editColumnName(column: any): void {
-    const newHeaderName = prompt('Enter new column name:', column.headerName);
-    if (newHeaderName) {
-      column.headerName = newHeaderName;
+  
+    /** ✅ Load Columns from Firestore */
+    loadColumns() {
+      const columnsRef = collection(this.firestore, 'specSheetColumns');
+      collectionData(columnsRef).subscribe((columns: any[]) => {
+        this.displayedColumns = columns.filter(col => col?.field && col?.headerName);
+        if (this.displayedColumns.length === 0) {
+          this.displayedColumns = [
+            { headerName: 'Title', field: 'title' },
+            { headerName: 'Description', field: 'description' }
+          ];
+        }
+        this.updateCombinedColumns();
+      });
     }
-  }
-
-  // ✅ Upload PDF to Firebase
-  uploadPDF(row: any): void {
-    const input = document.createElement('input');
-    input.type = 'file';
-    input.accept = 'application/pdf';
-
-    input.onchange = async (event: any) => {
-      const file = event.target.files[0];
-      if (file) {
-        const storage = getStorage();
-        const storageRef = ref(storage, `pdfs/${file.name}`);
-        await uploadBytes(storageRef, file);
-        const downloadURL = await getDownloadURL(storageRef);
-
-        row.pdfLink = downloadURL;
-        const rowRef = doc(this.firestore, `specSheetRows/${row.id}`);
-        setDoc(rowRef, row);
+  
+    /** ✅ Load Rows from Firestore */
+    loadRows() {
+      const rowsRef = collection(this.firestore, 'specSheetRows');
+      collectionData(rowsRef, { idField: 'id' }).subscribe((rows: any[]) => {
+        this.dataSource.data = rows.map(row => ({ ...row, isEditing: false }));
+      });
+    }
+  
+    /** ✅ Update Combined Columns (excluding ID in UI) */
+    updateCombinedColumns() {
+      this.combinedColumns = ['select', ...this.displayedColumns.map(col => col.field), 'pdfLink', 'actions'];
+    }
+  
+    /** ✅ Add New Row */
+    addRow() {
+      const newRow = { id: uuidv4(), title: '', description: '', pdfLink: '', isEditing: true };
+      this.dataSource.data = [...this.dataSource.data, newRow];
+      this.editingRowId = newRow.id;
+      this.saveRow(newRow);
+    }
+  
+    /** ✅ Save Row */
+    saveRow(row: any) {
+      row.isEditing = false;
+      const rowRef = doc(this.firestore, `specSheetRows/${row.id}`);
+      setDoc(rowRef, row);
+    }
+  
+    /** ✅ Enable Row Editing */
+    editRow(row: any) {
+      this.editingRowId = row.id;
+      row.isEditing = true;
+    }
+  
+    /** ✅ Detect Click Outside the Row to Save */
+    @HostListener('document:click', ['$event'])
+    onClickOutside(event: MouseEvent) {
+      const target = event.target as HTMLElement;
+      if (!target.closest('.editable-row')) {
+        if (this.editingRowId) {
+          const row = this.dataSource.data.find(r => r.id === this.editingRowId);
+          if (row) this.saveRow(row);
+          this.editingRowId = null;
+        }
       }
-    };
-
-    input.click();
-  }
+    }
+  
+    /** ✅ Delete Selected Rows */
+    deleteSelectedRows() {
+      this.selectedRows.forEach(row => {
+        const rowRef = doc(this.firestore, `specSheetRows/${row.id}`);
+        deleteDoc(rowRef);
+      });
+      this.dataSource.data = this.dataSource.data.filter(row => !this.selectedRows.includes(row));
+      this.selectedRows = [];
+    }
+  
+    /** ✅ Toggle Row Selection */
+    toggleRowSelection(row: any) {
+      if (row.selected) {
+        this.selectedRows.push(row);
+      } else {
+        this.selectedRows = this.selectedRows.filter(r => r.id !== row.id);
+      }
+    }
+    /** ✅ Select/Deselect All Rows */
+toggleSelectAll(event: any) {
+  const isChecked = event.checked;
+  this.dataSource.data.forEach(row => row.selected = isChecked);
+  this.selectedRows = isChecked ? [...this.dataSource.data] : [];
 }
+   
+ 
+  
+    /** ✅ Add New Column */
+    addColumn() {
+      const newColumnName = prompt('Enter the new column name:');
+      if (!newColumnName || newColumnName.trim() === '') return;
+  
+      const sanitizedField = newColumnName.toLowerCase().replace(/\s+/g, '_');
+      const newCol = { headerName: newColumnName, field: sanitizedField };
+  
+      if (this.displayedColumns.some(col => col.field === newCol.field)) {
+        alert('Column with this name already exists.');
+        return;
+      }
+  
+      this.displayedColumns.push(newCol);
+      this.updateCombinedColumns();
+  
+      const columnsRef = collection(this.firestore, 'specSheetColumns');
+      setDoc(doc(columnsRef, newCol.field), newCol);
+    }
+  
+    /** ✅ Delete Column */
+    deleteColumn(field: string) {
+      this.displayedColumns = this.displayedColumns.filter(col => col.field !== field);
+      this.updateCombinedColumns();
+      const columnsRef = doc(this.firestore, `specSheetColumns/${field}`);
+      deleteDoc(columnsRef);
+    }
+  
+    /** ✅ Upload PDF */
+    async uploadPDF(row: any) {
+      const input = document.createElement('input');
+      input.type = 'file';
+      input.accept = 'application/pdf';
+  
+      input.onchange = async (event: any) => {
+        const file = event.target.files[0];
+        if (file) {
+          const storage = getStorage();
+          const storageRef = ref(storage, `pdfs/${file.name}`);
+          await uploadBytes(storageRef, file);
+          const downloadURL = await getDownloadURL(storageRef);
+  
+          row.pdfLink = downloadURL;
+          this.saveRow(row);
+        }
+      };
+  
+      input.click();
+    }
+  }
+
+
+
