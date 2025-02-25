@@ -1,59 +1,84 @@
 <div class="container my-4 p-4 shadow rounded bg-light">
-  <h3 class="text-center">{{ tabName }} Spec Sheet 📄</h3>
+  <h3 class="text-center">📄 Spec Sheet</h3>
 
-  <!-- ✅ Action Buttons -->
+  <!-- 🔘 Action Buttons -->
   <div class="d-flex justify-content-end mb-3">
-    <button class="btn btn-primary me-2" (click)="addRow()">➕ Add Row</button>
-    <button class="btn btn-secondary me-2" (click)="addColumn()">📊 Add Column</button>
-    <button class="btn btn-danger" (click)="removeSelectedRows()">🗑️ Delete Selected</button>
+    <button mat-raised-button color="primary" (click)="addRow()">
+      ➕ Add Row
+    </button>
+    <button mat-raised-button color="accent" class="ms-2" (click)="addColumn()">
+      📊 Add Column
+    </button>
+    <button mat-raised-button color="warn" class="ms-2" (click)="deleteSelectedRows()">
+      🗑️ Delete Selected
+    </button>
   </div>
 
-  <!-- ✅ Material Table -->
+  <!-- 📊 Angular Material Table -->
   <div class="table-responsive">
-    <table mat-table [dataSource]="rowData" class="mat-elevation-z8 table table-striped table-bordered">
+    <table mat-table [dataSource]="dataSource" class="mat-elevation-z8 table table-striped table-bordered">
 
-      <!-- ✅ Checkbox Column -->
+      <!-- ✅ Selection Checkbox -->
       <ng-container matColumnDef="select">
         <th mat-header-cell *matHeaderCellDef>
           <mat-checkbox (change)="toggleSelectAll($event)">All</mat-checkbox>
         </th>
         <td mat-cell *matCellDef="let row">
-          <mat-checkbox [(ngModel)]="row.selected" (change)="toggleRowSelection(row, $event)"></mat-checkbox>
+          <mat-checkbox [(ngModel)]="row.selected" (change)="toggleRowSelection(row)"></mat-checkbox>
         </td>
       </ng-container>
 
       <!-- ✅ Dynamic Columns -->
-      <ng-container *ngFor="let column of columnDefs" [matColumnDef]="column.field">
+      <ng-container *ngFor="let column of displayedColumns" [matColumnDef]="column.field">
         <th mat-header-cell *matHeaderCellDef>
-          {{ column.headerName }}
-          <button class="btn btn-sm btn-outline-secondary ms-2" (click)="triggerColumnNameEdit(column.field)">✏️</button>
+          <div class="d-flex align-items-center">
+            {{ column.headerName }}
+            <button mat-icon-button color="warn" class="ms-2" matTooltip="Delete Column" (click)="deleteColumn(column.field)">
+              🗑️
+            </button>
+            <button mat-icon-button color="accent" class="ms-1" matTooltip="Edit Column" (click)="editColumnName(column)">
+              ✏️
+            </button>
+          </div>
         </th>
 
         <td mat-cell *matCellDef="let row">
-          <input *ngIf="column.editable" class="form-control"
-                 [(ngModel)]="row[column.field]"
-                 (change)="onCellValueChanged(row)"
-                 [placeholder]="column.headerName" />
+          <ng-container *ngIf="!row.isEditing">
+            {{ row[column.field] }}
+          </ng-container>
+          <ng-container *ngIf="row.isEditing">
+            <mat-form-field appearance="outline" class="w-100">
+              <input matInput [(ngModel)]="row[column.field]" (blur)="saveRow(row)">
+            </mat-form-field>
+          </ng-container>
         </td>
       </ng-container>
 
-      <!-- ✅ PDF Column -->
+      <!-- ✅ PDF Upload Column -->
       <ng-container matColumnDef="pdfLink">
         <th mat-header-cell *matHeaderCellDef>📁 PDF</th>
         <td mat-cell *matCellDef="let row">
-          <ng-container *ngIf="row.pdfLink; else uploadButton">
-            <a [href]="row.pdfLink" target="_blank">📄 View PDF</a>
-          </ng-container>
-          <ng-template #uploadButton>
-            <button class="btn btn-outline-primary btn-sm" (click)="uploadPDF(row)">Upload PDF</button>
-          </ng-template>
+          <a *ngIf="row.pdfLink" [href]="row.pdfLink" target="_blank">📄 View PDF</a>
+          <button mat-raised-button color="primary" *ngIf="!row.pdfLink" (click)="uploadPDF(row)">Upload PDF</button>
         </td>
       </ng-container>
 
-      <!-- ✅ Table Headers and Rows -->
-      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-      <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+      <!-- ✅ Actions Column -->
+      <ng-container matColumnDef="actions">
+        <th mat-header-cell *matHeaderCellDef>⚙️ Actions</th>
+        <td mat-cell *matCellDef="let row">
+          <button mat-icon-button color="primary" (click)="editRow(row)">
+            ✏️
+          </button>
+          <button mat-icon-button color="warn" (click)="deleteRow(row)">
+            🗑️
+          </button>
+        </td>
+      </ng-container>
 
+      <!-- ✅ Table Headers & Rows -->
+      <tr mat-header-row *matHeaderRowDef="combinedColumns"></tr>
+      <tr mat-row *matRowDef="let row; columns: combinedColumns;"></tr>
     </table>
   </div>
 </div>
