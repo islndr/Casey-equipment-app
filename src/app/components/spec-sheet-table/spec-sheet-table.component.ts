@@ -13,6 +13,7 @@ import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject } from 'fire
 import { Firestore, collection, collectionData, doc, setDoc, deleteDoc } from '@angular/fire/firestore';
 import { MatTableModule } from '@angular/material/table';
 import { SafePipe } from '../safe.pipe';
+
 @Component({
   selector: 'app-spec-sheet-table',
   standalone: true,
@@ -30,7 +31,6 @@ import { SafePipe } from '../safe.pipe';
     MatTableModule,
     SafePipe
   ]
- 
 })
 export class SpecSheetTableComponent implements OnInit {
   displayedColumns: any[] = [];
@@ -40,6 +40,7 @@ export class SpecSheetTableComponent implements OnInit {
   editingRowId: string | null = null;
   pdfModalOpen: boolean = false;
   selectedPDFRow: any = null;
+  sortDirection: { [key: string]: 'asc' | 'desc' } = {};
 
   constructor(private firestore: Firestore) {}
 
@@ -80,26 +81,65 @@ export class SpecSheetTableComponent implements OnInit {
       .map(col => col.field), 'pdfLink'];
   }
 
-  /** ✅ Add New Row */
-  addRow() {
-    const newRow = { id: uuidv4(), title: '', description: '', pdfLink: '', isEditing: true };
-    this.dataSource.data = [...this.dataSource.data, newRow];
-    this.editingRowId = newRow.id;
-    this.saveRow(newRow);
-  }
 
-  /** ✅ Save Row */
-  saveRow(row: any) {
-    row.isEditing = false;
-    const rowRef = doc(this.firestore, `specSheetRows/${row.id}`);
-    setDoc(rowRef, row);
-  }
 
-  /** ✅ Enable Row Editing */
-  editRow(row: any) {
-    this.editingRowId = row.id;
-    row.isEditing = true;
+
+
+
+
+
+/** ✅ Add New Row and Apply Sorting */
+addRow() {
+  const newRow = { id: uuidv4(), title: '', description: '', pdfLink: '', isEditing: true };
+  this.dataSource.data = [...this.dataSource.data, newRow];
+  this.editingRowId = newRow.id;
+  this.saveRow(newRow); // Save new row immediately to trigger sort
+  this.applyCurrentSort(); // Apply existing sort to include the new row
+}
+
+/** ✅ Reapply Current Sort */
+applyCurrentSort() {
+  const activeSortField = Object.keys(this.sortDirection).find(
+    field => this.sortDirection[field] !== undefined
+  );
+
+  if (activeSortField) {
+    this.sortColumn(activeSortField); // Trigger sort based on active sort field
   }
+}
+
+/** ✅ Enable Row Editing and Handle Enter Across All Columns */
+/** ✅ Enable Row Editing and Focus on Click */
+editRow(row: any, field: string) {
+  this.editingRowId = row.id;
+  row.isEditing = true;
+
+  setTimeout(() => {
+    const inputElement = document.querySelector(`input[data-row-id="${row.id}"][data-field="${field}"]`) as HTMLInputElement;
+    if (inputElement) {
+      inputElement.focus();
+      inputElement.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter') {
+          this.saveRow(row);           // Save the row on Enter
+          this.editingRowId = null;    // Exit edit mode
+        }
+      });
+    }
+  }, 0);
+}
+
+/** ✅ Save Row and Reapply Sorting */
+saveRow(row: any) {
+  row.isEditing = false;
+  const rowRef = doc(this.firestore, `specSheetRows/${row.id}`);
+  setDoc(rowRef, row).then(() => {
+    this.applyCurrentSort(); // Apply current sort after saving
+  });
+}
+
+
+
+
 
   /** ✅ Detect Click Outside the Row to Save */
   @HostListener('document:click', ['$event'])
@@ -187,34 +227,35 @@ export class SpecSheetTableComponent implements OnInit {
     this.updateCombinedColumns();
   }
 
-  /** ✅ Upload PDF */
+/** ✅ Sort Column with Toggle Direction */
+sortColumn(field: string) {
+  const direction = this.sortDirection[field] === 'asc' ? 'desc' : 'asc';
+  this.sortDirection = {}; // Clear previous sorts
+  this.sortDirection[field] = direction;
 
+  this.dataSource.data.sort((a, b) => {
+    const aValue = a[field]?.toString().toLowerCase() || '';
+    const bValue = b[field]?.toString().toLowerCase() || '';
+    if (aValue < bValue) return direction === 'asc' ? -1 : 1;
+    if (aValue > bValue) return direction === 'asc' ? 1 : -1;
+    return 0;
+  });
+
+  this.dataSource._updateChangeSubscription();
+}
+
+  /** ✅ Upload PDF */
   async uploadPDF(row: any) {
     const input = document.createElement('input');
-input.type = 'file';
-input.accept = 'application/pdf';
-
-input.onchange = async (event: any) => {
-  const file = event.target.files[0];
-  if (file) {
-    const sanitizedFileName = file.name.replace(/\s+/g, '_');
-    const storage = getStorage();
-    const storageRef = ref(storage, `pdfs/${sanitizedFileName}`);
-    await uploadBytes(storageRef, file);
-    const downloadURL = await getDownloadURL(storageRef);
-
-    row.pdfLink = downloadURL;
-    this.saveRow(row);
-  }
-};
     input.type = 'file';
     input.accept = 'application/pdf';
 
     input.onchange = async (event: any) => {
       const file = event.target.files[0];
       if (file) {
+        const sanitizedFileName = file.name.replace(/\s+/g, '_');
         const storage = getStorage();
-        const storageRef = ref(storage, `pdfs/${file.name}`);
+        const storageRef = ref(storage, `pdfs/${sanitizedFileName}`);
         await uploadBytes(storageRef, file);
         const downloadURL = await getDownloadURL(storageRef);
 
