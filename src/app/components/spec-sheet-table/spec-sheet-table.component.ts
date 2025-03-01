@@ -227,21 +227,57 @@ saveRow(row: any) {
     this.updateCombinedColumns();
   }
 
-/** ✅ Sort Column with Toggle Direction */
-sortColumn(field: string) {
-  const direction = this.sortDirection[field] === 'asc' ? 'desc' : 'asc';
-  this.sortDirection = {}; // Clear previous sorts
-  this.sortDirection[field] = direction;
+  sortColumn(field: string, direction?: 'asc' | 'desc') {
+    const currentDirection = direction || this.sortDirection[field] || 'asc';
+    const newDirection = currentDirection === 'asc' ? 'desc' : 'asc';
+  
+    this.sortDirection = {}; // Clear previous sort states
+    this.sortDirection[field] = newDirection;
+  
+    this.dataSource.data.sort((a, b) => {
+      const aValue = this.parseValue(a[field]);
+      const bValue = this.parseValue(b[field]);
+  
+      return newDirection === 'asc' ? aValue - bValue : bValue - aValue;
+    });
+  
+    this.dataSource._updateChangeSubscription();
+  }
+/** ✅ Parse value to handle numbers, decimals, and fractions */
+parseValue(value: string | number): number {
+  if (typeof value === 'number') return value; // Directly return if it's already a number
+  if (typeof value === 'string') return this.parseFraction(value.trim()); // Trim and parse fraction
+  return 0;
+}
 
-  this.dataSource.data.sort((a, b) => {
-    const aValue = a[field]?.toString().toLowerCase() || '';
-    const bValue = b[field]?.toString().toLowerCase() || '';
-    if (aValue < bValue) return direction === 'asc' ? -1 : 1;
-    if (aValue > bValue) return direction === 'asc' ? 1 : -1;
-    return 0;
-  });
+/** ✅ Convert Fractions & Mixed Numbers to Decimal */
+parseFraction(value: string): number {
+  if (!value) return 0;
 
-  this.dataSource._updateChangeSubscription();
+  // Remove extra spaces
+  value = value.trim();
+
+  // Handle whole numbers and decimals
+  if (!value.includes('/')) return parseFloat(value) || 0;
+
+  // Handle mixed fractions (e.g., "3 3/4")
+  const mixedFractionMatch = value.match(/^(\d+)\s+(\d+)\/(\d+)$/);
+  if (mixedFractionMatch) {
+    const whole = parseInt(mixedFractionMatch[1], 10);
+    const numerator = parseInt(mixedFractionMatch[2], 10);
+    const denominator = parseInt(mixedFractionMatch[3], 10);
+    return whole + numerator / denominator;
+  }
+
+  // Handle simple fractions (e.g., "1/4")
+  const fractionMatch = value.match(/^(\d+)\/(\d+)$/);
+  if (fractionMatch) {
+    const numerator = parseInt(fractionMatch[1], 10);
+    const denominator = parseInt(fractionMatch[2], 10);
+    return numerator / denominator;
+  }
+
+  return parseFloat(value) || 0; // If not a fraction, try parsing as a decimal
 }
 
   /** ✅ Upload PDF */
@@ -267,6 +303,11 @@ sortColumn(field: string) {
     input.click();
   }
 
+
+
+
+
+  
   /** ✅ View PDF in Modal */
   viewPDF(row: any) {
     this.selectedPDFRow = row;
