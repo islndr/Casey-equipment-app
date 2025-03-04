@@ -1,65 +1,119 @@
 import { Component, OnInit } from '@angular/core';
-import { MatListModule } from '@angular/material/list';
-import { MatIconModule } from '@angular/material/icon';
-import { MatButtonModule } from '@angular/material/button';
-import { RouterModule } from '@angular/router';
-import { Firestore, collection, collectionData, addDoc, deleteDoc, doc } from '@angular/fire/firestore';
-import { CommonModule } from '@angular/common';
+import { CommonModule } from '@angular/common'; 
+import { Firestore, collection, collectionData, doc, setDoc, deleteDoc } from '@angular/fire/firestore';
+import { Observable } from 'rxjs';
+import { SpecSheetTableComponent } from '../spec-sheet-table/spec-sheet-table.component';
+
+interface Tab {
+  id: string;
+  name: string;
+}
 
 @Component({
   selector: 'app-tabs',
-  standalone: true,
-  imports: [CommonModule, MatListModule, MatIconModule, MatButtonModule, RouterModule],
-  template: `
-    <h3 class="text-center">Equipment Types</h3>
-    <mat-list>
-      <mat-list-item *ngFor="let tab of tabs">
-        <span (click)="selectTab(tab)" class="tab-title">{{ tab.name }}</span>
-        <button mat-icon-button color="warn" (click)="deleteTab(tab.id)">
-          <mat-icon>delete</mat-icon>
-        </button>
-      </mat-list-item>
-    </mat-list>
-
-    <button mat-raised-button color="primary" (click)="addTab()">➕ Add Tab</button>
-  `,
-  styles: [`
-    .tab-title {
-      flex: 1;
-      cursor: pointer;
-    }
-  `]
+  templateUrl: './tabs.component.html',
+  styleUrls: ['./tabs.component.css'],
+  imports: [CommonModule, SpecSheetTableComponent]
 })
 export class TabsComponent implements OnInit {
-  tabs: any[] = [];
-  selectedTab: any;
+  tabs$: Observable<Tab[]>;
+  activeTabId: string | null = null;
 
-  constructor(private firestore: Firestore) {}
+  constructor(private firestore: Firestore) {
+    this.tabs$ = collectionData(collection(this.firestore, 'tabs'), { idField: 'id' }) as Observable<Tab[]>;
+  }
 
-  ngOnInit() {
-    const tabsRef = collection(this.firestore, 'equipmentTabs');
-    collectionData(tabsRef, { idField: 'id' }).subscribe((tabs) => {
-      this.tabs = tabs;
+  ngOnInit(): void {
+    this.tabs$.subscribe(tabs => {
+    
     });
   }
-
-  addTab() {
-    const tabName = prompt('Enter new tab name:');
-    if (tabName) {
-      const tabsRef = collection(this.firestore, 'equipmentTabs');
-      addDoc(tabsRef, { name: tabName });
-    }
+  ngAfterViewInit(): void {
+    setTimeout(() => {
+      if (this.tabs$) {
+        this.tabs$.subscribe(tabs => {
+          if (tabs.length > 0) {
+            this.switchTab(tabs[0].id);
+          }
+        });
+      }
+    }, 100);
   }
 
-  deleteTab(tabId: string) {
-    const confirmDelete = confirm('Are you sure you want to delete this tab?');
-    if (confirmDelete) {
-      const tabRef = doc(this.firestore, `equipmentTabs/${tabId}`);
-      deleteDoc(tabRef);
-    }
+  async addTab() {
+    const tabName = prompt('Enter tab name:');
+    if (!tabName) return;
+  
+    const newTabId = crypto.randomUUID();
+    const newTab = { id: newTabId, name: tabName };
+    
+    const tabRef = doc(this.firestore, `tabs/${newTab.id}`);
+    await setDoc(tabRef, newTab);
+  
+    // ✅ Automatically create a spec sheet for this tab
+    const newSpecSheet = { id: crypto.randomUUID(), tabId: newTabId };
+    const specSheetRef = doc(this.firestore, `specSheets/${newSpecSheet.id}`);
+    await setDoc(specSheetRef, newSpecSheet);
+  
+    console.log(`✅ Created spec sheet for new tab: ${newTabId}`);
   }
 
-  selectTab(tab: any) {
-    this.selectedTab = tab;
+
+
+  switchTab(tabId: string) {
+    this.activeTabId = tabId;
+    console.log(`🔄 Switching to tab: ${tabId}`);
+  }
+
+
+
+
+  async editTab(tab: Tab) {
+    const newName = prompt('Enter new tab name:', tab.name);
+    if (!newName || newName.trim() === '') return;
+  
+    const tabRef = doc(this.firestore, `tabs/${tab.id}`);
+    await setDoc(tabRef, { ...tab, name: newName });
+  
+    console.log(`✅ Tab renamed: ${newName}`);
+  }
+  
+  async deleteTab(tabId: string) {
+    const confirmation = prompt('Type "delete" to confirm tab deletion:');
+    if (confirmation !== 'delete') {
+      alert('Tab deletion cancelled.');
+      return;
+    }
+  
+    await deleteDoc(doc(this.firestore, `tabs/${tabId}`));
+    console.log(`❌ Tab deleted: ${tabId}`);
+  
+    if (this.activeTabId === tabId) {
+      this.activeTabId = null;
+    }
+  }
+  
+  moveTabUp(index: number) {
+    this.reorderTabs(index, index - 1);
+  }
+  
+  moveTabDown(index: number) {
+    this.reorderTabs(index, index + 1);
+  }
+  
+  reorderTabs(fromIndex: number, toIndex: number) {
+    this.tabs$.subscribe(tabs => {
+      const updatedTabs = [...tabs];
+      const temp = updatedTabs[fromIndex];
+      updatedTabs[fromIndex] = updatedTabs[toIndex];
+      updatedTabs[toIndex] = temp;
+  
+      updatedTabs.forEach((tab, i) => {
+        const tabRef = doc(this.firestore, `tabs/${tab.id}`);
+        setDoc(tabRef, { ...tab, order: i });
+      });
+  
+      console.log('🔄 Tabs reordered.');
+    });
   }
 }

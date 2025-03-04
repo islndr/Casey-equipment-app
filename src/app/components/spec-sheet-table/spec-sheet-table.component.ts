@@ -1,4 +1,4 @@
-import { Component, OnInit, HostListener } from '@angular/core';
+import { Component, OnInit, OnChanges, SimpleChanges, inject, HostListener, Input } from '@angular/core';
 import { v4 as uuidv4 } from 'uuid';
 import { MatTableDataSource } from '@angular/material/table';
 import { MatCheckboxModule } from '@angular/material/checkbox';
@@ -10,9 +10,12 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
-import { Firestore, collection, collectionData, doc, setDoc, deleteDoc } from '@angular/fire/firestore';
+import { Firestore, collection, collectionData, doc, setDoc, deleteDoc, query, where, } from '@angular/fire/firestore';
 import { MatTableModule } from '@angular/material/table';
 import { SafePipe } from '../safe.pipe';
+import { firstValueFrom } from 'rxjs';
+
+
 
 @Component({
   selector: 'app-spec-sheet-table',
@@ -29,10 +32,12 @@ import { SafePipe } from '../safe.pipe';
     MatIconModule,
     MatTooltipModule,
     MatTableModule,
-    SafePipe
+    SafePipe,
+   
   ]
 })
-export class SpecSheetTableComponent implements OnInit {
+export class SpecSheetTableComponent implements OnInit, OnChanges {
+
   displayedColumns: any[] = [];
   combinedColumns: string[] = [];
   dataSource = new MatTableDataSource<any>([]);
@@ -41,61 +46,146 @@ export class SpecSheetTableComponent implements OnInit {
   pdfModalOpen: boolean = false;
   selectedPDFRow: any = null;
   sortDirection: { [key: string]: 'asc' | 'desc' } = {};
+   @Input() activeTabId: string | null = null;
 
-  constructor(private firestore: Firestore) {}
+   constructor(private firestore: Firestore) {
+    const specSheetsRef = collection(this.firestore, 'specSheets');}
+
 
   ngOnInit(): void {
-    this.loadColumns();
-    this.loadRows();
+
+      this.loadColumns();
+      this.loadRows();
   }
 
-  /** ✅ Load Columns from Firestore */
-  loadColumns() {
-    const columnsRef = collection(this.firestore, 'specSheetColumns');
-    collectionData(columnsRef).subscribe((columns: any[]) => {
-      this.displayedColumns = columns.filter(col => col?.field && col?.headerName);
-      this.displayedColumns.sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
-      if (this.displayedColumns.length === 0) {
-        this.displayedColumns = [
-          { headerName: 'Title', field: 'title', order: 1 },
-          { headerName: 'Description', field: 'description', order: 2 }
-        ];
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['activeTabId'] && changes['activeTabId'].currentValue) {
+      console.log(`🔄 Reloading spec sheet for tab: ${this.activeTabId}`);
+  
+
+   
+        this.loadColumns();
+        this.loadRows();
+      
+    }
+  }
+
+
+
+
+
+  async loadColumns() {
+    if (!this.activeTabId) return;
+  
+    console.log(`📥 Fetching columns for tabId: ${this.activeTabId}`);
+  
+    const specSheetsRef = collection(this.firestore, 'specSheets');
+    const specSheetQuery = query(specSheetsRef, where('tabId', '==', this.activeTabId));
+  
+    try {
+      const specSheets: any[] = (await firstValueFrom(collectionData(specSheetQuery, { idField: 'id' }))) ?? [];
+  
+      if (specSheets.length === 0) {
+        console.warn(`⚠️ No spec sheets found for tabId: ${this.activeTabId}, creating one...`);
+        
+        const newSpecSheet = { id: uuidv4(), tabId: this.activeTabId };
+        const specSheetRef = doc(this.firestore, `specSheets/${newSpecSheet.id}`);
+        await setDoc(specSheetRef, newSpecSheet);
+  
+        console.log(`✅ Created new spec sheet with ID: ${newSpecSheet.id}`);
+        
+        // 🔄 Reload columns after creating the spec sheet
+        this.loadColumns();
+        return;
       }
-      this.updateCombinedColumns();
-    });
+  
+      const specSheetId = specSheets[0].id;
+      console.log(`✅ Found specSheetId: ${specSheetId}`);
+  
+      const columnsRef = collection(this.firestore, 'specSheetColumns');
+      const columnsQuery = query(columnsRef, where('specSheetId', '==', specSheetId));
+  
+      collectionData(columnsQuery, { idField: 'id' }).subscribe((columns: any[] = []) => {
+        console.log(`📊 Loaded columns:`, columns);
+        this.displayedColumns = columns.filter(col => col?.field && col?.headerName);
+        this.displayedColumns.sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+        this.updateCombinedColumns();
+      });
+  
+    } catch (error) {
+      console.error('❌ Error loading columns:', error);
+    }
   }
 
-  /** ✅ Load Rows from Firestore */
-  loadRows() {
-    const rowsRef = collection(this.firestore, 'specSheetRows');
-    collectionData(rowsRef, { idField: 'id' }).subscribe((rows: any[]) => {
-      this.dataSource.data = rows.map(row => ({ ...row, isEditing: false }));
-    });
+  async loadRows() {
+    if (!this.activeTabId) {
+      console.warn('❌ No activeTabId, skipping loadRows');
+      return;
+    }
+  
+    console.log(`📥 Fetching rows for tabId: ${this.activeTabId}`);
+  
+    const specSheetsRef = collection(this.firestore, 'specSheets');
+    const specSheetQuery = query(specSheetsRef, where('tabId', '==', this.activeTabId));
+  
+    try {
+      const specSheets: any[] = (await firstValueFrom(collectionData(specSheetQuery, { idField: 'id' }))) ?? [];
+  
+      if (specSheets.length === 0) {
+        console.warn(`⚠️ No spec sheets found for tabId: ${this.activeTabId}`);
+        return;
+      }
+  
+      const specSheetId = specSheets[0].id;
+      console.log(`✅ Found specSheetId: ${specSheetId}`);
+  
+      const rowsRef = collection(this.firestore, 'specSheetRows');
+      const rowsQuery = query(rowsRef, where('specSheetId', '==', specSheetId));
+  
+      collectionData(rowsQuery, { idField: 'id' }).subscribe((rows: any[] = []) => {
+        console.log(`📋 Loaded rows:`, rows);
+        this.dataSource.data = rows.map(row => ({ ...row, isEditing: false }));
+      });
+  
+    } catch (error) {
+      console.error('❌ Error loading rows:', error);
+    }
   }
-
-  /** ✅ Update Combined Columns (Exclude ID for Display) */
-  updateCombinedColumns() {
-    this.combinedColumns = ['select', ...this.displayedColumns
-      .filter(col => col.field !== 'id')
-      .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
-      .map(col => col.field), 'pdfLink'];
-  }
-
-
-
-
-
-
-
-
-/** ✅ Add New Row and Apply Sorting */
-addRow() {
-  const newRow = { id: uuidv4(), title: '', description: '', pdfLink: '', isEditing: true };
-  this.dataSource.data = [...this.dataSource.data, newRow];
-  this.editingRowId = newRow.id;
-  this.saveRow(newRow); // Save new row immediately to trigger sort
-  this.applyCurrentSort(); // Apply existing sort to include the new row
+/** ✅ Update Combined Columns (Exclude ID for Display) */
+updateCombinedColumns() {
+  this.combinedColumns = ['select', ...this.displayedColumns
+    .filter(col => col.field !== 'id')
+    .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
+    .map(col => col.field), 'pdfLink'];
 }
+
+
+
+
+
+
+
+/** ✅ Add New Row for Active Tab */
+addRow() {
+  if (!this.activeTabId) return;
+
+  const specSheetsRef = collection(this.firestore, 'specSheets');
+  const specSheetQuery = query(specSheetsRef, where('tabId', '==', this.activeTabId));
+
+  collectionData(specSheetQuery, { idField: 'id' }).subscribe((specSheets: any[]) => {
+    if (specSheets.length === 0) return;
+
+    const specSheetId = specSheets[0].id;
+    const newRow = { id: uuidv4(), specSheetId, title: '', description: '', pdfLink: '', isEditing: true };
+
+    this.dataSource.data = [...this.dataSource.data, newRow];
+    this.editingRowId = newRow.id;
+
+    const rowRef = doc(this.firestore, `specSheetRows/${newRow.id}`);
+    setDoc(rowRef, newRow).then(() => this.applyCurrentSort());
+  });
+}
+
 
 /** ✅ Reapply Current Sort */
 applyCurrentSort() {
@@ -108,8 +198,7 @@ applyCurrentSort() {
   }
 }
 
-/** ✅ Enable Row Editing and Handle Enter Across All Columns */
-/** ✅ Enable Row Editing and Focus on Click */
+/** ✅ Enable Row Editing and Save on Enter */
 editRow(row: any, field: string) {
   this.editingRowId = row.id;
   row.isEditing = true;
@@ -120,8 +209,8 @@ editRow(row: any, field: string) {
       inputElement.focus();
       inputElement.addEventListener('keydown', (event) => {
         if (event.key === 'Enter') {
-          this.saveRow(row);           // Save the row on Enter
-          this.editingRowId = null;    // Exit edit mode
+          this.saveRow(row); // Save row when Enter is pressed
+          this.editingRowId = null;
         }
       });
     }
@@ -130,6 +219,7 @@ editRow(row: any, field: string) {
 
 /** ✅ Save Row and Reapply Sorting */
 saveRow(row: any) {
+  if (!this.activeTabId) return;
   row.isEditing = false;
   const rowRef = doc(this.firestore, `specSheetRows/${row.id}`);
   setDoc(rowRef, row).then(() => {
@@ -141,18 +231,18 @@ saveRow(row: any) {
 
 
 
-  /** ✅ Detect Click Outside the Row to Save */
-  @HostListener('document:click', ['$event'])
-  onClickOutside(event: MouseEvent) {
-    const target = event.target as HTMLElement;
-    if (!target.closest('.editable-row')) {
-      if (this.editingRowId) {
-        const row = this.dataSource.data.find(r => r.id === this.editingRowId);
-        if (row) this.saveRow(row);
-        this.editingRowId = null;
-      }
-    }
+  /** ✅ Save Row When Clicking Outside */
+@HostListener('document:click', ['$event'])
+onClickOutside(event: MouseEvent) {
+  const target = event.target as HTMLElement;
+  if (!target.closest('.editable-row') && this.editingRowId) {
+    const row = this.dataSource.data.find(r => r.id === this.editingRowId);
+    if (row) this.saveRow(row);
+    this.editingRowId = null;
   }
+}
+
+
 
   /** ✅ Delete Selected Rows */
   deleteSelectedRows() {
@@ -180,26 +270,32 @@ saveRow(row: any) {
     this.selectedRows = isChecked ? [...this.dataSource.data] : [];
   }
 
-  /** ✅ Add New Column with Order */
-  addColumn() {
-    const newColumnName = prompt('Enter the new column name:');
-    const columnOrder = Number(prompt('Enter the column order (lowest = left, highest = right):'));
+/** ✅ Add New Column with Order for Active Tab */
+addColumn() {
+  if (!this.activeTabId) return;
 
-    if (!newColumnName || isNaN(columnOrder)) return;
+  const newColumnName = prompt('Enter the new column name:');
+  const columnOrder = Number(prompt('Enter the column order (lowest = left, highest = right):'));
 
+  if (!newColumnName || isNaN(columnOrder)) return;
+
+  const specSheetsRef = collection(this.firestore, 'specSheets');
+  const specSheetQuery = query(specSheetsRef, where('tabId', '==', this.activeTabId));
+
+  collectionData(specSheetQuery, { idField: 'id' }).subscribe((specSheets: any[]) => {
+    if (specSheets.length === 0) return;
+
+    const specSheetId = specSheets[0].id;
     const sanitizedField = newColumnName.toLowerCase().replace(/\s+/g, '_');
-    const newCol = { headerName: newColumnName, field: sanitizedField, order: columnOrder };
-
-    this.displayedColumns.forEach(col => {
-      if (col.order >= columnOrder) col.order += 1;
-    });
-
-    this.displayedColumns.push(newCol);
-    this.updateCombinedColumns();
+    const newCol = { specSheetId, headerName: newColumnName, field: sanitizedField, order: columnOrder };
 
     const columnsRef = collection(this.firestore, 'specSheetColumns');
-    setDoc(doc(columnsRef, newCol.field), newCol);
-  }
+    setDoc(doc(columnsRef, sanitizedField), newCol);
+    this.updateCombinedColumns();
+  });
+}
+
+
 
   /** ✅ Delete Column */
   deleteColumn(field: string) {
@@ -345,4 +441,5 @@ parseFraction(value: string): number {
     this.pdfModalOpen = false;
     this.selectedPDFRow = null;
   }
+  
 }
