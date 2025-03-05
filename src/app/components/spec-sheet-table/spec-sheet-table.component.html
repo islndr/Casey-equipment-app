@@ -31,11 +31,12 @@
 
       <!-- ✅ Dynamic Columns with Sort Buttons -->
       <ng-container *ngFor="let column of displayedColumns" [matColumnDef]="column.field">
-        <th mat-header-cell *matHeaderCellDef  class="text-uppercase text-center">
+        <th mat-header-cell *matHeaderCellDef  class="text-uppercase text-center sortable" (click)="sortColumn(column.field)">
           <div class="d-flex justify-content-between align-items-center">
             <span>{{ column.headerName }}</span>
             
           </div>
+          
           <div class="mt-1">
             <button class="btn btn-sm btn-outline-danger me-1" (click)="deleteColumn(column.field)" matTooltip="Delete Column">🗑️</button>
             <button class="btn btn-sm btn-outline-primary" (click)="editColumnName(column)" matTooltip="Edit Column">✏️</button>
