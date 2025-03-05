@@ -1,1 +1,44 @@
-<p>admin-panel works!</p>
+<div class="container my-4 p-4 shadow rounded bg-light">
+    <h3 class="text-uppercase fw-light m-0">User Management 👥</h3>
+  
+    <!-- ✅ Add User Form -->
+    <div class="d-flex justify-content-between align-items-center my-3">
+      <input type="email" class="form-control me-2" [(ngModel)]="newUserEmail" placeholder="User Email">
+      <select class="form-select me-2" [(ngModel)]="newUserRole">
+        <option value="user">User</option>
+        <option value="admin">Admin</option>
+      </select>
+      <button class="btn btn-success" (click)="addUser()">➕ Add User</button>
+    </div>
+  
+    <!-- ✅ User Table -->
+    <div class="table-responsive">
+      <table class="table table-striped">
+        <thead>
+          <tr>
+            <th>Email</th>
+            <th>Role</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let user of users">
+            <td>{{ user.email }}</td>
+            <td>
+              <select class="form-select" [(ngModel)]="user.role" (change)="updateUserRole(user)">
+                <option value="user">User</option>
+                <option value="admin">Admin</option>
+              </select>
+            </td>
+            <td>
+              <button class="btn btn-danger btn-sm" (click)="confirmDeleteUser(user)">🗑️ Delete</button>
+            </td>
+          </tr>
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h3 class="text-uppercase fw-light m-0">User Management 👥</h3>
+            <button class="btn btn-outline-danger" (click)="logout()">🚪 Logout</button>
+          </div>
+        </tbody>
+      </table>
+    </div>
+  </div>

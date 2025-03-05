@@ -12,18 +12,28 @@ import { provideFirebaseApp, initializeApp } from '@angular/fire/app';
 import { provideFirestore, getFirestore } from '@angular/fire/firestore';
 import { environment } from './environments/environment';
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
+import { AuthGuard } from './app/guards/auth.guard';
+import { provideAuth, getAuth } from '@angular/fire/auth';
+
+
+
+
 
 bootstrapApplication(AppComponent, {
   providers: [
     provideRouter(routes),
     provideHttpClient(),
+    provideAuth(() => getAuth()),
     importProvidersFrom(BrowserAnimationsModule),
     importProvidersFrom(MatSidenavModule),
     importProvidersFrom(MatToolbarModule),
     importProvidersFrom(MatListModule),
     provideFirebaseApp(() => initializeApp(environment.firebaseConfig)),
     provideFirestore(() => getFirestore()),
-    provideRouter(routes), provideAnimationsAsync()
+    provideRouter(routes), provideAnimationsAsync(),
+    provideAuth(() => getAuth()),
+    provideFirestore(() => getFirestore()),
+
   ]
 }).catch(err => console.error(err));
 

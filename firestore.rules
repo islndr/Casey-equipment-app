@@ -1,0 +1,54 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // 🔹 USERS Collection (Restrict who can update roles)
+    match /users/{userId} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null && request.auth.uid == userId;
+      
+      // Only admins can modify user roles
+      allow update: if request.auth.token.role == 'admin' && request.resource.data.role in ['viewer', 'editor', 'admin'];
+    }
+
+    // 🔹 SPEC SHEETS & ROWS (RBAC)
+    match /specSheets/{sheetId} {
+      allow read: if request.auth != null;
+      allow write: if request.auth.token.role in ['editor', 'admin'];
+      allow delete: if request.auth.token.role == 'admin';
+    }
+
+    match /specSheetRows/{rowId} {
+      allow read: if request.auth != null;
+      allow write: if request.auth.token.role in ['editor', 'admin'];
+      allow delete: if request.auth.token.role == 'admin';
+    }
+
+    // 🔹 SPEC SHEET COLUMNS (RBAC)
+    match /specSheetColumns/{columnId} {
+      allow read: if request.auth != null;
+      allow write: if request.auth.token.role in ['editor', 'admin'];
+      allow delete: if request.auth.token.role == 'admin';
+    }
+    
+    // 🔹 TABS Collection (Allow role-based access)
+    match /tabs/{tabId} {
+      allow read: if request.auth != null;
+      allow write: if request.auth.token.role in ['editor', 'admin'];
+      allow delete: if request.auth.token.role == 'admin';
+    }
+  }
+      // ✅ Allow only admins to manage users
+    match /users/{userId} {
+      allow read, update, delete: if get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == "admin";
+      allow create: if request.auth != null;
+    }
+
+    // ✅ Allow users to edit their own spec sheets
+    match /specSheets/{specSheetId} {
+      allow read, update, delete: if request.auth != null && resource.data.tabId == request.auth.uid;
+      allow create: if request.auth != null;
+    }
+  }
+ 
+
