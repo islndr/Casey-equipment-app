@@ -33,6 +33,7 @@ bootstrapApplication(AppComponent, {
     provideRouter(routes), provideAnimationsAsync(),
     provideAuth(() => getAuth()),
     provideFirestore(() => getFirestore()),
+    
 
   ]
 }).catch(err => console.error(err));

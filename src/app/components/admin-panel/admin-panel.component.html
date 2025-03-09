@@ -1,15 +1,34 @@
 <div class="container my-4 p-4 shadow rounded bg-light">
     <h3 class="text-uppercase fw-light m-0">User Management 👥</h3>
-  
+    <table>
+        <tr *ngFor="let user of users">
+          <td>{{ user.email }}</td>
+        </tr>
+      </table>
     <!-- ✅ Add User Form -->
-    <div class="d-flex justify-content-between align-items-center my-3">
-      <input type="email" class="form-control me-2" [(ngModel)]="newUserEmail" placeholder="User Email">
-      <select class="form-select me-2" [(ngModel)]="newUserRole">
-        <option value="user">User</option>
-        <option value="admin">Admin</option>
-      </select>
-      <button class="btn btn-success" (click)="addUser()">➕ Add User</button>
-    </div>
+    <h3>Create New User</h3>
+    <form (ngSubmit)="addUser()">
+      <div>
+        <label>Email:</label>
+        <input class="form-control" type="email" [(ngModel)]="newUserEmail" name="newUserEmail" required />
+      </div>
+    
+      <div>
+        <label>Password:</label>
+        <input class="form-control" type="password" [(ngModel)]="newUserPassword" name="newUserPassword" required />
+      </div>
+    
+      <div>
+        <label>Role:</label>
+        <select class="form-select" [(ngModel)]="newUserRole" name="newUserRole">
+          <option value="admin">Admin</option>
+          <option value="editor">Editor</option>
+          <option value="viewer">Viewer</option>
+        </select>
+      </div>
+    
+      <button class="btn-primary btn btn-sm" type="submit">Create User</button>
+    </form>
   
     <!-- ✅ User Table -->
     <div class="table-responsive">
@@ -26,18 +45,15 @@
             <td>{{ user.email }}</td>
             <td>
               <select class="form-select" [(ngModel)]="user.role" (change)="updateUserRole(user)">
-                <option value="user">User</option>
                 <option value="admin">Admin</option>
+                <option value="editor">Editor</option>
+                <option value="viewer">Disable</option>
               </select>
             </td>
             <td>
-              <button class="btn btn-danger btn-sm" (click)="confirmDeleteUser(user)">🗑️ Delete</button>
+
             </td>
-          </tr>
-          <div class="d-flex justify-content-between align-items-center mb-3">
-            <h3 class="text-uppercase fw-light m-0">User Management 👥</h3>
-            <button class="btn btn-outline-danger" (click)="logout()">🚪 Logout</button>
-          </div>
+        </tr>
         </tbody>
       </table>
     </div>

@@ -1,6 +1,6 @@
 // src/app/app.component.ts
 import { Component } from '@angular/core';
-import { RouterOutlet } from '@angular/router';
+import { RouterModule, RouterOutlet } from '@angular/router';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatSidenavModule } from '@angular/material/sidenav';
 import { MatIconModule } from '@angular/material/icon';
@@ -8,6 +8,7 @@ import { MatListModule } from '@angular/material/list';
 import { MatButtonModule } from '@angular/material/button';
 import { AuthService } from './services/auth.service';
 import { CommonModule } from '@angular/common';
+
 
 @Component({
   selector: 'app-root',
@@ -20,6 +21,8 @@ import { CommonModule } from '@angular/common';
     MatListModule,
     MatButtonModule,
     CommonModule,
+    RouterModule,
+   
   
   ],
   providers: [AuthService],
@@ -34,13 +37,16 @@ import { CommonModule } from '@angular/common';
     <a class="nav-item nav-link" *ngIf="authService.getRole() === 'admin'" routerLink="/admin">Admin Panel</a>
     <a class="nav-item nav-link" *ngIf="authService.getRole()" (click)="authService.logout()">Logout</a>
   </div>
+
 </nav>
     <mat-sidenav-container class="sidenav-container">
       <mat-sidenav mode="side" opened>
         <mat-nav-list>
-          <a mat-list-item routerLink="/admin">Admin Panel</a>
+          <a mat-list-item *ngIf="authService.getRole() === 'admin'" routerLink="/admin">Admin Panel</a>
           <a mat-list-item routerLink="/ios">iOS App</a>
-          <a mat-list-item routerLink="/tabs">Spread Sheets</a>
+          <a mat-list-item *ngIf="authService.getRole() === 'admin' && 'editor'" routerLink="/tabs">Spread Sheets</a>
+           <a mat-list-item routerLink="/tabs">Tables</a>
+         
         </mat-nav-list>
       </mat-sidenav>
 
@@ -57,4 +63,5 @@ import { CommonModule } from '@angular/common';
 })
 export class AppComponent {
   constructor(public authService: AuthService) {}
+
 }

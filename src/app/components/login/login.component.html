@@ -3,21 +3,31 @@
   
     <form (ngSubmit)="login()">
       <div *ngIf="errorMessage" class="alert alert-danger">{{ errorMessage }}</div>
-  
+
       <div class="mb-3">
         <label>Email</label>
         <input type="email" class="form-control" [(ngModel)]="email" name="email" required />
       </div>
-      
-  
-     
-     
 
       <div class="mb-3">
         <label>Password</label>
         <input type="password" class="form-control" [(ngModel)]="password" name="password" required />
       </div>
-  
+
+      <div class="mb-3 form-check">
+          <input type="checkbox" class="form-check-input" [(ngModel)]="rememberMe" name="rememberMe">
+          <label class="form-check-label">Remember Me</label>
+      </div>
+
       <button type="submit" class="btn btn-primary w-100">Login</button>
     </form>
-  </div>
+
+    <p><a href="#" (click)="resetPassword()">Forgot Password?</a></p>
+
+    <p *ngIf="successMessage" class="success">{{ successMessage }}</p>
+
+  <p *ngIf="errorMessage" class="error">{{ errorMessage }}</p>
+</div>
+ 
+
+

@@ -1,26 +1,41 @@
 import { Component, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { Firestore, collection, collectionData, doc, setDoc, deleteDoc, updateDoc, query, orderBy } from '@angular/fire/firestore';
-import { Observable } from 'rxjs';
+import { CommonModule, NgForOf } from '@angular/common';
+import { Firestore, collection, collectionData, doc, getDoc, setDoc, deleteDoc, updateDoc, query, orderBy } from '@angular/fire/firestore';
+import { FormsModule } from '@angular/forms';
 import { SpecSheetTableComponent } from '../spec-sheet-table/spec-sheet-table.component';
-
+import { Observable } from 'rxjs';
 interface Tab {
   id: string;
   name: string;
+  columns: string[];
+  rows: any[];
   order: number;
 }
 
+
 @Component({
   selector: 'app-tabs',
+  standalone: true,
   templateUrl: './tabs.component.html',
   styleUrls: ['./tabs.component.css'],
-  imports: [CommonModule, SpecSheetTableComponent],
+  imports: [
+    FormsModule,
+    CommonModule,
+    NgForOf,
+    SpecSheetTableComponent,
+  ],
 })
 export class TabsComponent implements OnInit {
+  tabs: Tab[] = [];
+  selectedTab: Tab | null = null;
+  newColumnName: string = '';
   tabs$: Observable<Tab[]>;
   tabsArr: Tab[] = [];
   activeTabId: string | null = null;
+  currentColumns: string[] = []; // Add this property
+  currentRows: any[] = [];
 
+  
   constructor(private firestore: Firestore) {
     const tabsRef = collection(this.firestore, 'tabs');
     const tabsQuery = query(tabsRef, orderBy('order', 'asc')); // Fetch tabs sorted by order
@@ -38,24 +53,7 @@ export class TabsComponent implements OnInit {
   }
 
 
-  /** ✅ Add a New Tab */
-  async addTab() {
-    const tabName = prompt('Enter tab name:');
-    if (!tabName) return;
 
-    const newTabId = crypto.randomUUID();
-    const newTab: Tab = { id: newTabId, name: tabName, order: Date.now() }; // Using timestamp for order
-
-    const tabRef = doc(this.firestore, `tabs/${newTab.id}`);
-    await setDoc(tabRef, newTab);
-
-    // ✅ Automatically create a spec sheet for this tab
-    const newSpecSheet = { id: crypto.randomUUID(), tabId: newTabId };
-    const specSheetRef = doc(this.firestore, `specSheets/${newSpecSheet.id}`);
-    await setDoc(specSheetRef, newSpecSheet);
-
-    console.log(`✅ Created spec sheet for new tab: ${newTabId}`);
-  }
 
   /** ✅ Edit Tab Name */
   async editTab(tab: Tab) {
@@ -99,7 +97,7 @@ export class TabsComponent implements OnInit {
   /** ✅ Delete Tab (Require "DELETE" Confirmation) */
   async deleteTab(tabId: string) {
     const confirmation = prompt('Type "DELETE" to confirm tab deletion:');
-    if (confirmation !== 'DELETE') return;
+    if (confirmation !== 'delete') return;
 
     await deleteDoc(doc(this.firestore, `tabs/${tabId}`));
 
@@ -108,9 +106,94 @@ export class TabsComponent implements OnInit {
     }
   }
 
-  /** ✅ Switch Tab */
   switchTab(tabId: string) {
     this.activeTabId = tabId;
-    console.log(`🔄 Switching to tab: ${tabId}`);
+  
+    // ✅ Fetch columns and rows specific to the selected tab
+    const selectedTab = this.tabsArr.find(tab => tab.id === tabId);
+    if (selectedTab) {
+      this.currentColumns = [...selectedTab.columns]; // Keep columns unique per tab
+      this.currentRows = [...selectedTab.rows]; // Keep rows unique per tab
+    }
   }
+
+
+  
+
+
+  
+/** ✅ Load Tabs and Auto-Select First Tab */
+async loadTabs() {
+  const tabsRef = collection(this.firestore, 'tabs');
+  collectionData(tabsRef, { idField: 'id' }).subscribe((tabs: any[]) => {
+    this.tabs = tabs.map(tab => ({
+      id: tab.id,
+      name: tab.name,
+      columns: tab.columns || [],
+      rows: tab.rows || [],
+      order: tab.order
+    }));
+
+    // ✅ Auto-select the first tab if available and no tab is selected
+    if (this.tabs.length > 0 && !this.selectedTab) {
+      this.selectTab(this.tabs[0]);
+    }
+  });
+}
+
+  
+
+  /** ✅ Select Tab */
+  selectTab(tab: Tab) {
+    this.selectedTab = tab;
+  }
+
+  /** ✅ Add Column */
+  async addColumn(tab: Tab) {
+    if (!this.newColumnName.trim()) {
+      alert('Column name cannot be empty.');
+      return;
+    }
+
+    if (tab.columns.includes(this.newColumnName)) {
+      alert(`Column "${this.newColumnName}" already exists in this tab.`);
+      return;
+    }
+
+    tab.columns.push(this.newColumnName);
+    await updateDoc(doc(this.firestore, `tabs/${tab.id}`), { columns: tab.columns });
+
+    this.newColumnName = ''; // Clear input after adding
+  }
+
+  /** ✅ Add Row */
+  async addRow(tab: Tab) {
+    const newRow: Record<string, any> = tab.columns.reduce((row: Record<string, any>, col: string) => {
+      row[col] = ''; // Empty row values
+      return row;
+    }, {});
+
+    tab.rows.push(newRow);
+    await updateDoc(doc(this.firestore, `tabs/${tab.id}`), { rows: tab.rows });
+  }
+
+  /** ✅ Add a New Tab */
+  async addTab() {
+    const tabName = prompt('Enter tab name:');
+    if (!tabName) return;
+
+    const newTabId = crypto.randomUUID();
+    const newTab: Tab = { id: newTabId, name: tabName, columns: [], rows: [], order: Date.now() }; // Using timestamp for order
+
+    const tabRef = doc(this.firestore, `tabs/${newTab.id}`);
+    await setDoc(tabRef, newTab);
+
+    // ✅ Automatically create a spec sheet for this tab
+    const newSpecSheet = { id: crypto.randomUUID(), tabId: newTabId };
+    const specSheetRef = doc(this.firestore, `specSheets/${newSpecSheet.id}`);
+    await setDoc(specSheetRef, newSpecSheet);
+
+    console.log(`✅ Created spec sheet for new tab: ${newTabId}`);
+  }
+
 }

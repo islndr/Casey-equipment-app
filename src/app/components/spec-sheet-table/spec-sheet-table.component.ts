@@ -270,30 +270,64 @@ onClickOutside(event: MouseEvent) {
     this.selectedRows = isChecked ? [...this.dataSource.data] : [];
   }
 
-/** ✅ Add New Column with Order for Active Tab */
-addColumn() {
-  if (!this.activeTabId) return;
-
-  const newColumnName = prompt('Enter the new column name:');
-  const columnOrder = Number(prompt('Enter the column order (lowest = left, highest = right):'));
-
-  if (!newColumnName || isNaN(columnOrder)) return;
-
-  const specSheetsRef = collection(this.firestore, 'specSheets');
-  const specSheetQuery = query(specSheetsRef, where('tabId', '==', this.activeTabId));
-
-  collectionData(specSheetQuery, { idField: 'id' }).subscribe((specSheets: any[]) => {
-    if (specSheets.length === 0) return;
-
-    const specSheetId = specSheets[0].id;
-    const sanitizedField = newColumnName.toLowerCase().replace(/\s+/g, '_');
-    const newCol = { specSheetId, headerName: newColumnName, field: sanitizedField, order: columnOrder };
-
-    const columnsRef = collection(this.firestore, 'specSheetColumns');
-    setDoc(doc(columnsRef, sanitizedField), newCol);
-    this.updateCombinedColumns();
-  });
-}
+  async addColumn() {
+    if (!this.activeTabId) return;
+  
+    const newColumnName = prompt('Enter the new column name:');
+    const columnOrder = Number(prompt('Enter the column order (lowest = left, highest = right):'));
+  
+    if (!newColumnName?.trim() || isNaN(columnOrder)) {
+      alert('⚠️ Invalid column name or order.');
+      return;
+    }
+  
+    try {
+      // ✅ Fetch spec sheet for the active tab
+      const specSheetsRef = collection(this.firestore, 'specSheets');
+      const specSheetQuery = query(specSheetsRef, where('tabId', '==', this.activeTabId));
+      const specSheets = await firstValueFrom(collectionData(specSheetQuery, { idField: 'id' }));
+  
+      if (specSheets.length === 0) {
+        alert('⚠️ No spec sheet found for this tab.');
+        return;
+      }
+  
+      const specSheetId = specSheets[0].id;
+  
+      // ✅ Create a sanitized field name
+      const sanitizedField = newColumnName.toLowerCase().replace(/\s+/g, '_');
+  
+      // ✅ Check if the column already exists in this tab
+      const columnsRef = collection(this.firestore, 'specSheetColumns');
+      const columnsQuery = query(columnsRef, where('specSheetId', '==', specSheetId), where('field', '==', sanitizedField));
+      const existingColumns = await firstValueFrom(collectionData(columnsQuery));
+  
+      if (existingColumns.length > 0) {
+        alert(`⚠️ Column "${newColumnName}" already exists in this tab.`);
+        return;
+      }
+  
+      // ✅ Add the new column
+      const newCol = {
+        id: uuidv4(),
+        specSheetId: specSheetId,
+        headerName: newColumnName,
+        field: sanitizedField,
+        order: columnOrder,
+        createdAt: new Date()
+      };
+  
+      await setDoc(doc(columnsRef, newCol.id), newCol);
+      alert(`✅ Column "${newColumnName}" added successfully!`);
+  
+      // ✅ Update UI
+      this.displayedColumns.push(newCol);
+      this.updateCombinedColumns();
+    } catch (error) {
+      console.error('❌ Error adding column:', error);
+      alert('❌ Failed to add column. Please try again.');
+    }
+  }
 
 
 

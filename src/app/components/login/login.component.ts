@@ -1,10 +1,10 @@
 import { Component, NgZone } from '@angular/core';
 import { Router } from '@angular/router';
-import { Auth, signInWithEmailAndPassword } from '@angular/fire/auth';
+import { Auth, signInWithEmailAndPassword, setPersistence, browserLocalPersistence, browserSessionPersistence } from '@angular/fire/auth';
+import { AuthService } from '../../services/auth.service';
 import { Firestore, doc, getDoc } from '@angular/fire/firestore';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
-
 
 @Component({
   selector: 'app-login',
@@ -13,22 +13,28 @@ import { CommonModule } from '@angular/common';
   styleUrls: ['./login.component.css'],
   imports: [
     FormsModule,
-    CommonModule
+    CommonModule,
+  ],
+  providers: [
+    AuthService,
   ],
 })
 export class LoginComponent {
   email: string = '';
   password: string = '';
   errorMessage: string = '';
+  successMessage: string = '';
+  rememberMe: boolean = false;
   
-  
-
-  constructor(private auth: Auth, private firestore: Firestore, private router: Router, private zone: NgZone) {}
+  constructor(private auth: Auth, private firestore: Firestore, private router: Router, private zone: NgZone, private authService: AuthService) {}
 
   async login() {
     this.errorMessage = ''; // Clear previous errors
   
     try {
+      // ✅ Set session persistence based on "Remember Me"
+      await setPersistence(this.auth, this.rememberMe ? browserLocalPersistence : browserSessionPersistence);
+
       const userCredential = await signInWithEmailAndPassword(this.auth, this.email, this.password);
       const userId = userCredential.user.uid;
       
@@ -40,9 +46,21 @@ export class LoginComponent {
       }
   
       const userData = userDoc.data();
-      const role = userData?.['role'] || 'user';
+      const role = userData?.['role'] || 'editor'; // Default to "editor"
+      
+      // ✅ Store user session
+      const userSession = { uid: userId, email: this.email, role };
+      if (this.rememberMe) {
+        localStorage.setItem('user', JSON.stringify(userSession));
+      } else {
+        sessionStorage.setItem('user', JSON.stringify(userSession));
+      }
   
-      this.router.navigate([role === 'admin' ? '/admin' : '/tabs']);
+      // ✅ Redirect based on role
+      this.zone.run(() => {
+        this.router.navigate([role === 'admin' ? '/admin' : '/tabs']);
+      });
+
     } catch (error: any) {
       console.error("❌ Login Error:", error);
   
@@ -66,4 +84,23 @@ export class LoginComponent {
         this.errorMessage = errorMessage;
       });
     }
-  }}
+  }
+
+  /** ✅ Trigger Password Reset */
+  resetPassword() {
+    if (!this.email) {
+      this.errorMessage = 'Please enter your email to reset your password.';
+      return;
+    }
+
+    this.authService.resetPassword(this.email)
+      .then(() => {
+        this.successMessage = '📩 Reset email sent! Check your inbox.';
+        this.errorMessage = ''; // Clear error if successful
+      })
+      .catch(error => {
+        this.errorMessage = '❌ Error sending reset email. Please try again.';
+        console.error(error);
+      });
+  }
+}
