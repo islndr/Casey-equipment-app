@@ -12,7 +12,7 @@ export const routes: Routes = [
   { path: 'admin', component: AdminPanelComponent, canActivate: [AuthGuard] }, // ✅ Use AuthGuard
   { path: 'tabs', component: TabsComponent, canActivate: [AuthGuard] }, // ✅ Use AuthGuard
   { path: 'ios', component: IOSAppComponent },
-  { path: '**', redirectTo: '/admin' }
+  { path: '**', redirectTo: '/login' }
 ];
 
 @NgModule({

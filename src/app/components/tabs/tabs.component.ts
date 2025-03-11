@@ -64,7 +64,7 @@ export class TabsComponent implements OnInit {
     await updateDoc(tabRef, { name: newName });
   }
 
-  /** ✅ Move Tab Up */
+  /** ✅ Move Tab Left */
   async moveTabLeft(index: number, tabs: Tab[]) {
     if (index === 0) return; // Already first tab, can't move up
 
@@ -79,7 +79,7 @@ export class TabsComponent implements OnInit {
     await updateDoc(previousTabRef, { order: currentTab.order });
   }
 
-  /** ✅ Move Tab Down */
+  /** ✅ Move Tab Right */
   async moveTabRight(index: number, tabs: Tab[]) {
     if (index === tabs.length - 1) return; // Already last tab, can't move down
 
@@ -96,7 +96,7 @@ export class TabsComponent implements OnInit {
 
   /** ✅ Delete Tab (Require "DELETE" Confirmation) */
   async deleteTab(tabId: string) {
-    const confirmation = prompt('Type "DELETE" to confirm tab deletion:');
+    const confirmation = prompt('Type "delete" to confirm tab deletion:');
     if (confirmation !== 'delete') return;
 
     await deleteDoc(doc(this.firestore, `tabs/${tabId}`));

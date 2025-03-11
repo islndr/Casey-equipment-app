@@ -1,26 +1,32 @@
 <div class="container my-3">
-  <div class="d-flex justify-content-between align-items-center">
-    <ul class="nav nav-tabs">
-      <li *ngFor="let tab of tabsArr ?? []; let i = index" class="nav-item d-flex align-items-center">
-        <button class="nav-link" [ngClass]="{'active': tab.id === activeTabId}" (click)="switchTab(tab.id)">
+  <div class="d-flex justify-content-between tabs-row align-items-center">
+    <ul class="nav nav-tabs  tab-container">
+      <li *ngFor="let tab of tabsArr ?? []; let i = index" class="nav-item tab-item">
+        <button class="nav-link text-uppercase" [ngClass]="{'active': tab.id === activeTabId}" (click)="switchTab(tab.id)">
           {{ tab.name }}
         </button>
 
-        <!-- ✏️ Edit Tab -->
-        <button class="btn btn-outline-secondary btn-sm ms-1" (click)="editTab(tab)" title="Edit Tab">✏️</button>
+   <!-- Move Arrows - Same Size & Centered -->
+<div class="d-flex justify-content-center move-buttons">
+  <button class="btn btn-sm btn-arrow" *ngIf="i > 0" (click)="moveTabLeft(i, tabsArr)" title="Move Left">
+    <i class="fas fa-chevron-left"></i>
+  </button>
+  <button class="btn btn-sm btn-arrow" *ngIf="i < (tabsArr.length - 1)" (click)="moveTabRight(i, tabsArr)" title="Move Right">
+    <i class="fas fa-chevron-right"></i>
+  </button>
+  
+</div>
 
-        <!-- ⬅ Move Tab Left -->
-       <div class="align-items-center d-flex flex-column">
-        <button class="btn btn-outline-primary btn-sm mb-1 p-1" *ngIf="i > 0" (click)="moveTabLeft(i, tabsArr)" title="Move Tab Left">⬅</button>
-
-        <!-- ➡ Move Tab Right -->
-        <button class="btn btn-outline-primary btn-sm p-1" *ngIf="i < (tabsArr.length - 1)" (click)="moveTabRight(i, tabsArr)" title="Move Tab Right">➡</button>
-      </div>
-        <!-- 🗑 Delete Tab -->
-        <button class="btn btn-danger btn-sm ms-1" (click)="deleteTab(tab.id)" title="Delete Tab">🗑</button>
+        <!-- Action Buttons (Edit & Delete) -->
+        <div class="tab-actions">
+          <button class="btn btn-sm btn-edit" (click)="editTab(tab)" title="Edit">✏️</button>
+          <button class="btn btn-sm btn-delete" (click)="deleteTab(tab.id)" title="Delete">🗑</button>
+        </div>
       </li>
     </ul>
-    <button class="btn btn-primary ms-2" (click)="addTab()">➕ Add Tab</button>
+    
+    <!-- Add Tab Button -->
+    <button class="btn btn-dark add-tab-btn" (click)="addTab()">+ Add Tab</button>
   </div>
 
   <div *ngIf="activeTabId">

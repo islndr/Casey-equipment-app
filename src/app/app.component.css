@@ -1,0 +1,82 @@
+/* ✅ Sidebar Container */
+.sidebar-container {
+    display: flex; /* 🔥 Ensures sidebar and content are side by side */
+    height: 100vh; /* 🔥 Ensures full-page layout */
+}
+
+/* ✅ Sidebar Styling */
+.custom-sidenav {
+    width: 200px;
+    background-color: #222;
+    color: white;
+    transition: width 0.3s ease-in-out;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column; /* 🔥 Stacks sidebar items and toggle button */
+}
+
+/* ✅ Collapsed Sidebar */
+.custom-sidenav.collapsed {
+    width: 60px;
+}
+
+/* ✅ Sidebar Links */
+.sidebar-links {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+}
+
+/* ✅ Sidebar Items */
+.sidebar-item {
+    display: flex;
+    align-items: center;
+    padding: 12px;
+    color: white;
+    text-decoration: none;
+    font-size: 16px;
+    width: 100%;
+    transition: all 0.3s ease-in-out;
+    text-overflow: hidden;
+    min-width: 170px; /* 🔥 Ensures text doesn't overflow */
+    
+}
+
+/* ✅ Sidebar Icons */
+.sidebar-icon {
+    font-size: 22px;
+    min-width: 40px;
+    padding-bottom: 2px ;
+    text-align: center;
+}
+
+/* ✅ Hide Text When Collapsed */
+.custom-sidenav.collapsed .sidebar-text {
+    display: none;
+    
+   
+    
+}
+
+/* ✅ Sidebar Toggle Button Inside Sidebar */
+.sidebar-toggle {
+    background: #FFC107;
+    border: none;
+    padding: 10px;
+    width: 100%;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    align-self: center; /* 🔥 Centers the button */
+    margin-bottom: 10px; /* Adds spacing */
+}
+
+.logout-btn {
+
+}
+/* ✅ Content Area */
+.content {
+    flex-grow: 1; /* 🔥 Ensures content takes full width */
+    padding: 20px;
+    overflow: auto;
+    background: #f4f4f4;
+}

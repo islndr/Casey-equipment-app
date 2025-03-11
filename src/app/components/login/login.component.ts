@@ -58,7 +58,7 @@ export class LoginComponent {
   
       // ✅ Redirect based on role
       this.zone.run(() => {
-        this.router.navigate([role === 'admin' ? '/admin' : '/tabs']);
+        this.router.navigate(['/tabs']);
       });
 
     } catch (error: any) {

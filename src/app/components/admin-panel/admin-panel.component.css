@@ -1,0 +1,106 @@
+/* ✅ Admin Panel Container */
+.container {
+    background: #2C2C2C; /* Dark background for industrial look */
+    color: white; /* White text for contrast */
+    padding: 20px;
+    border-radius: 6px;
+    box-shadow: 0px 2px 6px rgba(0, 0, 0, 0.3);
+}
+
+/* ✅ Section Titles */
+h3 {
+    font-size: 20px;
+    color: #FFC107; /* Gold accent */
+    font-weight: bold;
+    border-bottom: 2px solid #FFC107;
+    padding-bottom: 5px;
+    text-transform: uppercase;
+}
+
+/* ✅ Form Styling */
+form {
+    background: #3A3A3A;
+    padding: 15px;
+    border-radius: 6px;
+    box-shadow: 0px 2px 6px rgba(0, 0, 0, 0.2);
+}
+
+/* ✅ Input Fields */
+input, select {
+    background: #222;
+    color: white;
+    border: 1px solid #555;
+    padding: 8px;
+    border-radius: 4px;
+    width: 100%;
+}
+
+/* ✅ Input Placeholder */
+input::placeholder {
+    color: #999;
+}
+
+/* ✅ Buttons */
+.btn {
+    font-size: 14px;
+    padding: 8px 12px;
+    border-radius: 4px;
+    transition: all 0.3s ease;
+}
+
+/* ✅ Primary Button */
+.btn-primary {
+    background: #FFC107;
+    border: none;
+    color: black;
+    margin-top: 10px;
+}
+
+.btn-primary:hover {
+    background: #E0A800;
+}
+
+/* ✅ Danger (Delete) Button */
+.btn-danger {
+    background: #D9534F;
+    border: none;
+}
+
+.btn-danger:hover {
+    background: #B52B27;
+}
+
+/* ✅ Table Styling */
+.table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+/* ✅ Table Header */
+.table th {
+    background: #3A3A3A;
+    color: #FFC107;
+    font-size: 14px;
+    font-weight: bold;
+    padding: 12px;
+    text-align: center;
+    border-bottom: 2px solid #555;
+}
+
+/* ✅ Table Rows */
+.table td {
+    padding: 10px;
+    border-bottom: 1px solid #555;
+    text-align: center;
+    color: #333;
+}
+
+/* ✅ Table Alternating Row Colors */
+.table tbody tr:nth-child(even) {
+    background-color: #333;
+}
+
+/* ✅ Responsive Table */
+.table-responsive {
+    overflow-x: auto;
+}

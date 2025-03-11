@@ -1,4 +1,22 @@
 /* You can add global styles to this file, and also import other style files */
 
+
 html, body { height: 100%; }
 body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
+@use '@angular/material' as mat;
+
+@media (min-width:1400px) {
+    .container {
+        max-width: 1400px;
+    }
+}
+
+.mdc-checkbox__background {
+  
+    border-color: #FFC107 !important;
+  
+  }
+
+  .mdc-checkbox__native-control:enabled:checked~.mdc-checkbox__background, .mdc-checkbox__native-control:enabled:indeterminate~.mdc-checkbox__background {
+    background-color: #FFC107 !important;
+  }

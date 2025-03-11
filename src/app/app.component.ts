@@ -26,42 +26,16 @@ import { CommonModule } from '@angular/common';
   
   ],
   providers: [AuthService],
-  template: `
-    <mat-toolbar color="primary">
-      Casey Equipment App
-    </mat-toolbar>
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-  <a class="navbar-brand" href="#">Casey Equipment</a>
-  
-  <div class="navbar-nav">
-    <a class="nav-item nav-link" *ngIf="authService.getRole() === 'admin'" routerLink="/admin">Admin Panel</a>
-    <a class="nav-item nav-link" *ngIf="authService.getRole()" (click)="authService.logout()">Logout</a>
-  </div>
-
-</nav>
-    <mat-sidenav-container class="sidenav-container">
-      <mat-sidenav mode="side" opened>
-        <mat-nav-list>
-          <a mat-list-item *ngIf="authService.getRole() === 'admin'" routerLink="/admin">Admin Panel</a>
-          <a mat-list-item routerLink="/ios">iOS App</a>
-          <a mat-list-item *ngIf="authService.getRole() === 'admin' && 'editor'" routerLink="/tabs">Spread Sheets</a>
-           <a mat-list-item routerLink="/tabs">Tables</a>
-         
-        </mat-nav-list>
-      </mat-sidenav>
-
-      <mat-sidenav-content>
-        <router-outlet></router-outlet>
-      </mat-sidenav-content>
-    </mat-sidenav-container>
-  `,
-  styles: [`
-    .sidenav-container {
-      height: 100vh;
-    }
-  `]
+  templateUrl: `./app.component.html`,
+  styleUrls: ['./app.component.css']
 })
 export class AppComponent {
   constructor(public authService: AuthService) {}
+  title = 'casey-equipment-app';
+  isSidebarOpen = true; // Default state
 
+  toggleSidebar() {
+    this.isSidebarOpen = !this.isSidebarOpen;
+  }
 }
+

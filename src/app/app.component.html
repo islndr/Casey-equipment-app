@@ -1,1 +1,47 @@
-<router-outlet></router-outlet>
+<mat-toolbar color="primary" class="app-toolbar">
+    <span>Casey Equipment App</span>
+    <span class="spacer"></span>
+    
+
+    
+ 
+</mat-toolbar>
+
+<div class="sidebar-container"  >
+    <!-- Sidebar -->
+    <div class="custom-sidenav" *ngIf="authService.getRole() === 'admin' || authService.getRole() === 'editor'" [ngClass]="{'collapsed': !isSidebarOpen}">
+      
+      <!-- Sidebar Links -->
+      <div class="sidebar-links">
+        <a routerLink="/admin" *ngIf="authService.getRole() === 'admin'" class="sidebar-item">
+          <i class="fas fa-user-shield sidebar-icon"></i> 
+          <span class="sidebar-text" *ngIf="isSidebarOpen">Users</span>
+        </a>
+        <a routerLink="/ios" class="sidebar-item">
+          <i class="fas fa-mobile-alt sidebar-icon"></i> 
+          <span class="sidebar-text" *ngIf="isSidebarOpen">iOS App</span>
+        </a>
+        <a routerLink="/tabs" *ngIf="authService.getRole() === 'admin' || authService.getRole() === 'editor'" class="sidebar-item">
+            <i class="fas fa-list sidebar-icon"></i> 
+            <span class="sidebar-text" *ngIf="isSidebarOpen">Spread Sheets</span>
+        </a>
+        <a href="" class="sidebar-item" (click)="authService.logout()">
+            <i class="fas sidebar-icon fa-sign-out-alt"></i>  <span class="sidebar-text" *ngIf="isSidebarOpen">Logout</span>
+          </a>
+  
+   
+      </div>
+            <!-- Sidebar Toggle Button -->
+            <button class="sidebar-toggle" (click)="toggleSidebar()">
+                <i class="fas" [ngClass]="{'fa-angle-double-left': isSidebarOpen, 'fa-angle-double-right': !isSidebarOpen}"></i>
+              </button>
+  
+              
+    </div>
+   
+ <!-- Main Content -->
+ <div class="content">
+    <router-outlet></router-outlet>
+  </div>
+   
+</div>

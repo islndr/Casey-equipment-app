@@ -1,0 +1,130 @@
+/* ✅ Tab Container - More Refined */
+.container {
+    background-color: #2C2C2C;
+    padding-bottom: 1px;
+}
+
+.tab-container {
+    background-color: #2C2C2C;
+   border: none;
+    display: flex;
+    flex-wrap: wrap;
+    padding: 8px;
+}
+.tabs-row {
+    width: 100%;
+    border-bottom: 2px solid #FFC107;
+}
+
+/* ✅ Individual Tab - Less Boxy, More Streamlined */
+.tab-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: 6px;
+    margin-right: 5px;
+    background: #3A3A3A;
+    border: 1px solid #555;
+    border-radius: 6px;
+    transition: all 0.3s ease;
+}
+
+.tab-item:hover {
+    background-color: #444;
+    border-color: #FFC107;
+}
+
+/* ✅ Active Tab - Subtler Highlight */
+.nav-tabs .nav-item .nav-link {
+    color: #E0E0E0;
+    font-weight: 600;
+    border: none;
+    padding: 10px 12px;
+    transition: all 0.3s;
+}
+
+.nav-tabs .nav-item .nav-link.active {
+    color: black;
+    background-color: #FFC107;
+    font-weight: bold;
+    border-radius: 6px 6px 0 0;
+    border-bottom: 3px solid #D89C00;
+}
+
+/* ✅ Arrow Buttons - Unified Size & Position */
+.move-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 5px;
+    margin-top: 4px;
+}
+
+.btn-arrow {
+
+
+    transition: all 0.3s;
+}
+
+.btn-arrow:hover {
+    background-color: #777;
+    color: white;
+}
+
+/* ✅ Edit & Delete Buttons - More Professional */
+.tab-actions {
+    display: flex;
+    justify-content: center;
+    gap: 5px;
+    margin-top: 4px;
+}
+
+.tab-actions .btn {
+    font-size: 12px;
+    padding: 5px 8px;
+    transition: all 0.3s;
+}
+
+/* ✅ Subtler Button Colors */
+.btn-edit {
+    background: none;
+    color: #FFC107;
+    border: 1px solid #FFC107;
+}
+
+.btn-edit:hover {
+    background-color: #FFC107;
+    color: black;
+}
+
+.btn-delete {
+    background: none;
+    color: #D9534F;
+    border: 1px solid #D9534F;
+}
+
+.btn-delete:hover {
+    background-color: #D9534F;
+    color: white;
+}
+
+/* ✅ Add Tab Button - More Subtle */
+.add-tab-btn {
+    font-size: 14px;
+    font-weight: bold;
+    background-color: #444;
+    border: 1px solid #777;
+    padding: 8px 12px;
+    border-radius: 6px;
+    transition: all 0.3s ease;
+}
+
+.add-tab-btn:hover {
+    background-color: #5A5A5A;
+    border-color: #FFC107;
+}
+
+.btn-arrow:hover {
+    color: rgb(255, 193, 7);
+    background-color: transparent;
+}

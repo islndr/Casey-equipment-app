@@ -1,7 +1,7 @@
 <div class="container-fluid my-4 p-4 shadow rounded bg-light">
   <!-- ✅ Header -->
   <div class="d-flex justify-content-between align-items-center mb-3">
-    <h3 class="text-uppercase fw-light m-0">Spec Sheet 📄</h3>
+    <h3 class="text-uppercase fw-light m-0">Spec Sheets 📄</h3>
     <div class="d-flex">
       <button class="btn btn-primary me-2" (click)="addRow()">➕ Add Row</button>
       <button class="btn btn-secondary me-2" (click)="addColumn()">📊 Add Column</button>
@@ -21,8 +21,9 @@
 
       <!-- ✅ Selection Checkbox -->
       <ng-container matColumnDef="select">
-        <th mat-header-cell *matHeaderCellDef class="text-uppercase text-center">
+        <th mat-header-cell *matHeaderCellDef class="text-uppercase checkbox-column text-center">
           <mat-checkbox (change)="toggleSelectAll($event)"></mat-checkbox>
+          <div class="mdc-checkbox__ripple"></div>
         </th>
         <td mat-cell *matCellDef="let row" class="text-center">
           <mat-checkbox [(ngModel)]="row.selected" (change)="toggleRowSelection(row)"></mat-checkbox>
@@ -30,29 +31,39 @@
       </ng-container>
 
       <!-- ✅ Dynamic Columns with Sort Buttons -->
-      <ng-container *ngFor="let column of displayedColumns" [matColumnDef]="column.field">
-        <th mat-header-cell *matHeaderCellDef  class="text-uppercase text-center sortable" (click)="sortColumn(column.field)">
-          <div class="d-flex justify-content-between align-items-center">
-            <span>{{ column.headerName }}</span>
-            
-          </div>
-          
-          <div class="mt-1">
-            <button class="btn btn-sm btn-outline-danger me-1" (click)="deleteColumn(column.field)" matTooltip="Delete Column">🗑️</button>
-            <button class="btn btn-sm btn-outline-primary" (click)="editColumnName(column)" matTooltip="Edit Column">✏️</button>
-          </div>
-        </th>
-        <td mat-cell *matCellDef="let row" class="editable-row text-center" (click)="editRow(row, column.field)">
-          <ng-container *ngIf="editingRowId === row.id; else staticCell">
-            <input class="form-control" [(ngModel)]="row[column.field]" />
+          <!-- ✅ Dynamic Columns with Sort Buttons -->
+          <ng-container *ngFor="let column of displayedColumns; let i = index" [matColumnDef]="column.field">
+            <th mat-header-cell *matHeaderCellDef class="text-uppercase text-center sortable" (click)="sortColumn(column.field)">
+              <div class="d-flex justify-content-center align-items-center">
+                <span>{{ column.headerName.toUpperCase() }}</span>
+                <span class="sort-icon">▲▼</span>
+              </div>
+    
+              <div class="d-flex justify-content-center move-buttons mt-1">
+                <button class="btn btn-sm btn-arrow" *ngIf="i > 0" (click)="moveColumnLeft(i)" title="Move Left">
+                  <i class="fas fa-chevron-left"></i>
+                </button>
+                <button class="btn btn-sm btn-arrow" *ngIf="i < (displayedColumns.length - 1)" (click)="moveColumnRight(i)" title="Move Right">
+                  <i class="fas fa-chevron-right"></i>
+                </button>
+              </div>
+    
+              <div class="mt-1 action-icons">
+                <button class="btn btn-sm btn-edit" (click)="editColumnName(column)" matTooltip="Edit Column">✏️</button>
+                <button class="btn btn-sm btn-delete me-1" (click)="deleteColumn(column.id)" matTooltip="Delete Column">🗑️</button>
+              </div>
+            </th>
+            <td mat-cell *matCellDef="let row" class="editable-row text-center" (click)="editRow(row, column.field)">
+              <ng-container *ngIf="editingRowId === row.id; else staticCell">
+                <input class="form-control" [(ngModel)]="row[column.field]" />
+              </ng-container>
+              <ng-template #staticCell>{{ row[column.field] }}</ng-template>
+            </td>
           </ng-container>
-          <ng-template #staticCell>{{ row[column.field] }}</ng-template>
-        </td>
-      </ng-container>
 
       <!-- ✅ PDF Upload & View Column -->
       <ng-container matColumnDef="pdfLink">
-        <th mat-header-cell *matHeaderCellDef class="text-uppercase text-center">📎 PDF</th>
+        <th mat-header-cell *matHeaderCellDef class="text-uppercase pdf-head text-center">📎 PDF</th>
         <td mat-cell *matCellDef="let row" class="text-center">
           <ng-container *ngIf="row.pdfLink; else uploadBtn">
             <button class="btn btn-sm btn-outline-primary" (click)="viewPDF(row)">📄 View PDF</button>

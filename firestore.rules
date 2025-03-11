@@ -2,11 +2,11 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     
-    // 🔹 USERS Collection: Allow Admins to Create and Manage Users
+    // 🔹 USERS Collection: Role-Based Access Control
     match /users/{userId} {
       allow read: if request.auth != null;
 
-      // ✅ Ensure the admin exists and has role "admin" before creating users
+      // ✅ Ensure only admins can create users
       allow create: if request.auth != null &&
         exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == "admin";
@@ -23,31 +23,35 @@ service cloud.firestore {
         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == "admin";
     }
 
-    // 🔹 SPEC SHEETS & ROWS (RBAC)
-    match /specSheets/{sheetId} {
+      // 🔹 SPEC SHEETS Collection
+    match /specSheets/{specSheetId} {
       allow read: if request.auth != null;
-      allow write, delete: if exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
-                           get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ['editor', 'admin'];
+
+      // ✅ Only editors and admins can modify spec sheets
+      allow write, delete: if request.auth != null &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ['editor', 'admin'];
+
+      // 🔹 SPEC SHEET ROWS
+      match /rows/{rowId} {
+        allow read: if request.auth != null;
+        allow write, delete: if request.auth != null &&
+          get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ['editor', 'admin'];
+      }
+
+      // 🔹 SPEC SHEET COLUMNS
+      match /columns/{columnId} {
+        allow read: if request.auth != null;
+        allow write, delete: if request.auth != null &&
+          get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ['editor', 'admin'];
+      }
     }
 
-    match /specSheetRows/{rowId} {
-      allow read: if request.auth != null;
-      allow write, delete: if exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
-                           get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ['editor', 'admin'];
-    }
-
-    // 🔹 SPEC SHEET COLUMNS (RBAC)
-    match /specSheetColumns/{columnId} {
-      allow read: if request.auth != null;
-      allow write, delete: if exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
-                           get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ['editor', 'admin'];
-    }
-
-    // 🔹 TABS Collection (RBAC)
+    // 🔹 TABS Collection
     match /tabs/{tabId} {
       allow read: if request.auth != null;
-      allow write, delete: if exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
-                           get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ['editor', 'admin'];
+      allow write, delete: if request.auth != null &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ['editor', 'admin'];
     }
   }
+  
 }

@@ -1,21 +1,17 @@
-<div class="container my-4 p-4 shadow rounded bg-light">
+<div class="container my-4 p-4 shadow rounded">
     <h3 class="text-uppercase fw-light m-0">User Management 👥</h3>
-    <table>
-        <tr *ngFor="let user of users">
-          <td>{{ user.email }}</td>
-        </tr>
-      </table>
+
     <!-- ✅ Add User Form -->
     <h3>Create New User</h3>
     <form (ngSubmit)="addUser()">
       <div>
         <label>Email:</label>
-        <input class="form-control" type="email" [(ngModel)]="newUserEmail" name="newUserEmail" required />
+        <input class="form-control" type="email" [(ngModel)]="newUserEmail" name="newUserEmail" placeholder="Enter email" required />
       </div>
     
       <div>
         <label>Password:</label>
-        <input class="form-control" type="password" [(ngModel)]="newUserPassword" name="newUserPassword" required />
+        <input class="form-control" type="password" [(ngModel)]="newUserPassword" name="newUserPassword" placeholder="Enter password" required />
       </div>
     
       <div>
@@ -27,7 +23,7 @@
         </select>
       </div>
     
-      <button class="btn-primary btn btn-sm" type="submit">Create User</button>
+      <button class="btn btn-primary btn-sm" type="submit">Create User</button>
     </form>
   
     <!-- ✅ User Table -->
@@ -51,7 +47,7 @@
               </select>
             </td>
             <td>
-
+                <button class="btn btn-danger btn-sm" (click)="removeUser(user)">🗑️ Delete</button>
             </td>
         </tr>
         </tbody>

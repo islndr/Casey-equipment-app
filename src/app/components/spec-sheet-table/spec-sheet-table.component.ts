@@ -10,10 +10,14 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
-import { Firestore, collection, collectionData, doc, setDoc, deleteDoc, query, where, } from '@angular/fire/firestore';
-import { MatTableModule } from '@angular/material/table';
+import { Firestore, collection, collectionData, doc, setDoc, deleteDoc, query, where, getDocs, getDoc, updateDoc, writeBatch } from '@angular/fire/firestore';import { MatTableModule } from '@angular/material/table';
 import { SafePipe } from '../safe.pipe';
 import { firstValueFrom } from 'rxjs';
+import { initializeAppCheck, ReCaptchaV3Provider } from 'firebase/app-check';
+import { Auth, onAuthStateChanged } from '@angular/fire/auth';
+
+
+
 
 
 
@@ -36,6 +40,11 @@ import { firstValueFrom } from 'rxjs';
    
   ]
 })
+
+
+
+
+
 export class SpecSheetTableComponent implements OnInit, OnChanges {
 
   displayedColumns: any[] = [];
@@ -47,31 +56,95 @@ export class SpecSheetTableComponent implements OnInit, OnChanges {
   selectedPDFRow: any = null;
   sortDirection: { [key: string]: 'asc' | 'desc' } = {};
    @Input() activeTabId: string | null = null;
-
-   constructor(private firestore: Firestore) {
-    const specSheetsRef = collection(this.firestore, 'specSheets');}
+   specSheetId: string | null = null;
 
 
-  ngOnInit(): void {
 
-      this.loadColumns();
-      this.loadRows();
-  }
 
-  ngOnChanges(changes: SimpleChanges): void {
+
+
+
+   constructor(private firestore: Firestore, private auth: Auth) {
+    const specSheetsRef = collection(this.firestore, 'specSheets');
+ 
+  
+   }
+   handleEnterPress = (event: KeyboardEvent, row: any, inputElement: HTMLInputElement) => {
+    if (event.key === 'Enter') {
+      event.preventDefault(); // ✅ Prevent default form submission
+      console.log(`✅ Enter pressed, saving row ${row.id}`);
+  
+      this.saveRow(row);
+      this.editingRowId = null;
+      row.isEditing = false;
+      inputElement.blur(); // ✅ Unfocus input after saving
+    }
+  };
+  handleBlurSave = (row: any) => {
+    console.log(`🔹 Input blurred, saving row ${row.id}`);
+    this.saveRow(row);
+    this.editingRowId = null;
+    row.isEditing = false;
+  };
+   
+
+   async ngOnInit(): Promise<void> { // Ensure async keyword is here
+      await this.loadSpecSheet();
+      await this.loadColumns();
+      await this.loadRows();
+      onAuthStateChanged(this.auth, async (user) => {
+        if (user) {
+          console.log("✅ User is authenticated:", user.uid);
+          await this.loadSpecSheet();
+        } else {
+          console.error("❌ User is not authenticated.");
+        }
+      });
+   }
+
+   async ngOnChanges(changes: SimpleChanges) {
     if (changes['activeTabId'] && changes['activeTabId'].currentValue) {
       console.log(`🔄 Reloading spec sheet for tab: ${this.activeTabId}`);
-  
+      await this.loadSpecSheet();
+    }
+   }
 
-   
-        this.loadColumns();
-        this.loadRows();
-      
+
+  async loadSpecSheet() {
+    if (!this.activeTabId) return;
+  
+    console.log(`📥 Loading spec sheet for tabId: ${this.activeTabId}`);
+  
+    const specSheetsRef = collection(this.firestore, 'specSheets');
+    const specSheetQuery = query(specSheetsRef, where('tabId', '==', this.activeTabId));
+  
+    try {
+      const specSheets: any[] = (await firstValueFrom(collectionData(specSheetQuery, { idField: 'id' }))) ?? [];
+  
+      if (specSheets.length === 0) {
+        console.warn(`⚠️ No spec sheet found for tabId: ${this.activeTabId}, creating one...`);
+  
+        // Create a new spec sheet if one does not exist
+        const newSpecSheet = { id: uuidv4(), tabId: this.activeTabId };
+        const specSheetRef = doc(this.firestore, `specSheets/${newSpecSheet.id}`);
+        await setDoc(specSheetRef, newSpecSheet);
+  
+        console.log(`✅ Created new spec sheet with ID: ${newSpecSheet.id}`);
+  
+        this.specSheetId = newSpecSheet.id;
+      } else {
+        this.specSheetId = specSheets[0].id;
+        console.log(`✅ Found specSheetId: ${this.specSheetId}`);
+      }
+  
+      // Load the columns and rows for the found spec sheet
+      await this.loadColumns();
+      await this.loadRows();
+  
+    } catch (error) {
+      console.error('❌ Error loading spec sheet:', error);
     }
   }
-
-
-
 
 
   async loadColumns() {
@@ -93,22 +166,19 @@ export class SpecSheetTableComponent implements OnInit, OnChanges {
         await setDoc(specSheetRef, newSpecSheet);
   
         console.log(`✅ Created new spec sheet with ID: ${newSpecSheet.id}`);
-        
-        // 🔄 Reload columns after creating the spec sheet
-        this.loadColumns();
-        return;
+  
+        this.specSheetId = newSpecSheet.id;
+      } else {
+        this.specSheetId = specSheets[0].id;
+        console.log(`✅ Found specSheetId: ${this.specSheetId}`);
       }
   
-      const specSheetId = specSheets[0].id;
-      console.log(`✅ Found specSheetId: ${specSheetId}`);
-  
-      const columnsRef = collection(this.firestore, 'specSheetColumns');
-      const columnsQuery = query(columnsRef, where('specSheetId', '==', specSheetId));
-  
-      collectionData(columnsQuery, { idField: 'id' }).subscribe((columns: any[] = []) => {
+      // Now load columns for this specSheetId
+      
+      const columnsRef = collection(this.firestore, `specSheets/${this.specSheetId}/columns`);
+      collectionData(columnsRef, { idField: 'id' }).subscribe((columns: any[] = []) => {
         console.log(`📊 Loaded columns:`, columns);
-        this.displayedColumns = columns.filter(col => col?.field && col?.headerName);
-        this.displayedColumns.sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+        this.displayedColumns = columns.sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
         this.updateCombinedColumns();
       });
   
@@ -116,7 +186,7 @@ export class SpecSheetTableComponent implements OnInit, OnChanges {
       console.error('❌ Error loading columns:', error);
     }
   }
-
+  
   async loadRows() {
     if (!this.activeTabId) {
       console.warn('❌ No activeTabId, skipping loadRows');
@@ -136,13 +206,13 @@ export class SpecSheetTableComponent implements OnInit, OnChanges {
         return;
       }
   
-      const specSheetId = specSheets[0].id;
-      console.log(`✅ Found specSheetId: ${specSheetId}`);
+      this.specSheetId = specSheets[0].id;
+      console.log(`✅ Found specSheetId: ${this.specSheetId}`);
   
-      const rowsRef = collection(this.firestore, 'specSheetRows');
-      const rowsQuery = query(rowsRef, where('specSheetId', '==', specSheetId));
-  
-      collectionData(rowsQuery, { idField: 'id' }).subscribe((rows: any[] = []) => {
+      // Fetch rows for this specSheetId
+      
+      const rowsRef = collection(this.firestore, `specSheets/${this.specSheetId}/rows`);
+      collectionData(rowsRef, { idField: 'id' }).subscribe((rows: any[] = []) => {
         console.log(`📋 Loaded rows:`, rows);
         this.dataSource.data = rows.map(row => ({ ...row, isEditing: false }));
       });
@@ -151,6 +221,7 @@ export class SpecSheetTableComponent implements OnInit, OnChanges {
       console.error('❌ Error loading rows:', error);
     }
   }
+
 /** ✅ Update Combined Columns (Exclude ID for Display) */
 updateCombinedColumns() {
   this.combinedColumns = ['select', ...this.displayedColumns
@@ -162,31 +233,35 @@ updateCombinedColumns() {
 
 
 
-
-
-
 /** ✅ Add New Row for Active Tab */
-addRow() {
-  if (!this.activeTabId) return;
+async addRow() {
+  if (!this.activeTabId) {
+    console.error("❌ Error: activeTabId is missing.");
+    return;
+  }
 
-  const specSheetsRef = collection(this.firestore, 'specSheets');
-  const specSheetQuery = query(specSheetsRef, where('tabId', '==', this.activeTabId));
+  // Ensure specSheetId is available
+  if (!this.specSheetId) {
+    console.warn("⚠️ No specSheetId found. Fetching from Firestore...");
+    await this.loadSpecSheet();
+    if (!this.specSheetId) {
+      console.error("❌ Error: specSheetId is still missing after fetching.");
+      return;
+    }
+  }
 
-  collectionData(specSheetQuery, { idField: 'id' }).subscribe((specSheets: any[]) => {
-    if (specSheets.length === 0) return;
+  console.log(`➕ Adding row to specSheetId: ${this.specSheetId}`);
 
-    const specSheetId = specSheets[0].id;
-    const newRow = { id: uuidv4(), specSheetId, title: '', description: '', pdfLink: '', isEditing: true };
+  const newRow = { id: uuidv4(), specSheetId: this.specSheetId, isEditing: true };
+  const rowRef = doc(this.firestore, `specSheets/${this.specSheetId}/rows/${newRow.id}`);
 
-    this.dataSource.data = [...this.dataSource.data, newRow];
-    this.editingRowId = newRow.id;
-
-    const rowRef = doc(this.firestore, `specSheetRows/${newRow.id}`);
-    setDoc(rowRef, newRow).then(() => this.applyCurrentSort());
-  });
+  try {
+    await setDoc(rowRef, newRow);
+    console.log(`✅ Row added successfully: ${newRow.id}`);
+  } catch (error) {
+    console.error("❌ Firestore Error Adding Row:", error);
+  }
 }
-
-
 /** ✅ Reapply Current Sort */
 applyCurrentSort() {
   const activeSortField = Object.keys(this.sortDirection).find(
@@ -200,34 +275,40 @@ applyCurrentSort() {
 
 /** ✅ Enable Row Editing and Save on Enter */
 editRow(row: any, field: string) {
+  // ✅ Save the currently edited row before switching to a new one
+  if (this.editingRowId !== null && this.editingRowId !== row.id) {
+    const currentEditingRow = this.dataSource.data.find(r => r.id === this.editingRowId);
+    if (currentEditingRow) {
+      console.log(`🔄 Saving previous row ${this.editingRowId} before switching.`);
+      this.saveRow(currentEditingRow);
+    }
+  }
+
+  // ✅ Start editing the new row
   this.editingRowId = row.id;
   row.isEditing = true;
 
   setTimeout(() => {
     const inputElement = document.querySelector(`input[data-row-id="${row.id}"][data-field="${field}"]`) as HTMLInputElement;
+
     if (inputElement) {
       inputElement.focus();
-      inputElement.addEventListener('keydown', (event) => {
-        if (event.key === 'Enter') {
-          this.saveRow(row); // Save row when Enter is pressed
-          this.editingRowId = null;
-        }
-      });
+      console.log(`🔹 Focused on input for row: ${row.id}, field: ${field}`);
+
+      // ✅ Remove previous event listeners to prevent duplicates
+      inputElement.removeEventListener('keydown', (event) => this.handleEnterPress(event, row, inputElement));
+      inputElement.removeEventListener('blur', () => this.handleBlurSave(row));
+
+      // ✅ Attach Enter key event
+      inputElement.addEventListener('keydown', (event) => this.handleEnterPress(event, row, inputElement));
+
+      // ✅ Attach Blur event to save changes when focus is lost
+      inputElement.addEventListener('blur', () => this.handleBlurSave(row));
+    } else {
+      console.error(`❌ Input element not found for row ${row.id}, field ${field}`);
     }
-  }, 0);
+  }, 50); // ✅ Slight delay ensures DOM updates before querying for input
 }
-
-/** ✅ Save Row and Reapply Sorting */
-saveRow(row: any) {
-  if (!this.activeTabId) return;
-  row.isEditing = false;
-  const rowRef = doc(this.firestore, `specSheetRows/${row.id}`);
-  setDoc(rowRef, row).then(() => {
-    this.applyCurrentSort(); // Apply current sort after saving
-  });
-}
-
-
 
 
 
@@ -245,12 +326,15 @@ onClickOutside(event: MouseEvent) {
 
 
   /** ✅ Delete Selected Rows */
-  deleteSelectedRows() {
+  async deleteSelectedRows() {
+    if (!this.specSheetId) return;
+  
+    const batch = writeBatch(this.firestore);
     this.selectedRows.forEach(row => {
-      const rowRef = doc(this.firestore, `specSheetRows/${row.id}`);
-      deleteDoc(rowRef);
+      const rowRef = doc(this.firestore, `specSheets/${this.specSheetId}/rows/${row.id}`);
+      batch.delete(rowRef);
     });
-    this.dataSource.data = this.dataSource.data.filter(row => !this.selectedRows.includes(row));
+    await batch.commit();
     this.selectedRows = [];
   }
 
@@ -273,112 +357,309 @@ onClickOutside(event: MouseEvent) {
   async addColumn() {
     if (!this.activeTabId) return;
   
-    const newColumnName = prompt('Enter the new column name:');
-    const columnOrder = Number(prompt('Enter the column order (lowest = left, highest = right):'));
+    const newColumnName = prompt('Enter new column name:');
+    const columnOrder = Number(prompt('Enter column order:'));
   
     if (!newColumnName?.trim() || isNaN(columnOrder)) {
-      alert('⚠️ Invalid column name or order.');
+      alert("⚠️ Invalid column name or order.");
+      return;
+    }
+  
+    // ✅ Fetch spec sheet for the active tab
+    const specSheetsRef = collection(this.firestore, 'specSheets');
+    const specSheetQuery = query(specSheetsRef, where('tabId', '==', this.activeTabId));
+    const specSheets = await firstValueFrom(collectionData(specSheetQuery, { idField: 'id' }));
+  
+    if (specSheets.length === 0) {
+      alert("⚠️ No spec sheet found for this tab.");
+      return;
+    }
+  
+    this.specSheetId = specSheets[0].id;
+  
+    // ✅ Generate a sanitized field name
+    const sanitizedField = newColumnName.toLowerCase().replace(/\s+/g, '_');
+  
+    // ✅ Check if the column already exists in Firestore
+    const columnsRef = collection(this.firestore, `specSheets/${this.specSheetId}/columns`);
+    const existingColumns = await firstValueFrom(collectionData(columnsRef, { idField: 'id' }));
+    if (existingColumns.some(col => col['field'] === sanitizedField)) {
+      alert(`⚠️ Column "${newColumnName}" already exists.`);
+      return;
+    }
+  
+    // ✅ Create a new column document in Firestore
+    const newCol = {
+      id: uuidv4(),
+      headerName: newColumnName,
+      field: sanitizedField,
+      order: columnOrder,
+      createdAt: new Date()
+    };
+  
+    const columnRef = doc(this.firestore, `specSheets/${this.specSheetId}/columns/${newCol.id}`);
+    await setDoc(columnRef, newCol);
+  
+    // ✅ Update UI
+    this.displayedColumns.push(newCol);
+    this.updateCombinedColumns();
+    alert(`✅ Column "${newColumnName}" added successfully!`);
+  }
+
+/** ✅ Move Column Left */
+async moveColumnLeft(index: number) {
+  if (index === 0 || !this.specSheetId) return; // Already first column, can't move left
+
+  const currentColumn = this.displayedColumns[index];
+  const previousColumn = this.displayedColumns[index - 1];
+
+  const currentColumnRef = doc(this.firestore, `specSheets/${this.specSheetId}/columns/${currentColumn.id}`);
+  const previousColumnRef = doc(this.firestore, `specSheets/${this.specSheetId}/columns/${previousColumn.id}`);
+
+  try {
+    // ✅ Swap order values in Firestore
+    await updateDoc(currentColumnRef, { order: previousColumn.order });
+    await updateDoc(previousColumnRef, { order: currentColumn.order });
+
+    // ✅ Swap in UI array
+    [this.displayedColumns[index], this.displayedColumns[index - 1]] = 
+      [this.displayedColumns[index - 1], this.displayedColumns[index]];
+
+    console.log(`⬅️ Column moved left:`, this.displayedColumns.map(col => col.headerName));
+
+    // ✅ Re-sort and update UI
+    this.refreshColumnOrder();
+  } catch (error) {
+    console.error("❌ Error moving column left:", error);
+  }
+}
+
+/** ✅ Move Column Right */
+async moveColumnRight(index: number) {
+  if (index === this.displayedColumns.length - 1 || !this.specSheetId) return; // Already last column, can't move right
+
+  const currentColumn = this.displayedColumns[index];
+  const nextColumn = this.displayedColumns[index + 1];
+
+  const currentColumnRef = doc(this.firestore, `specSheets/${this.specSheetId}/columns/${currentColumn.id}`);
+  const nextColumnRef = doc(this.firestore, `specSheets/${this.specSheetId}/columns/${nextColumn.id}`);
+
+  try {
+    // ✅ Swap order values in Firestore
+    await updateDoc(currentColumnRef, { order: nextColumn.order });
+    await updateDoc(nextColumnRef, { order: currentColumn.order });
+
+    // ✅ Swap in UI array
+    [this.displayedColumns[index], this.displayedColumns[index + 1]] = 
+      [this.displayedColumns[index + 1], this.displayedColumns[index]];
+
+    console.log(`➡️ Column moved right:`, this.displayedColumns.map(col => col.headerName));
+
+    // ✅ Re-sort and update UI
+    this.refreshColumnOrder();
+  } catch (error) {
+    console.error("❌ Error moving column right:", error);
+  }
+}
+
+/** ✅ Refresh Column Order */
+refreshColumnOrder() {
+  // ✅ Sort columns by order value
+  this.displayedColumns.sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+
+  // ✅ Update UI
+  this.updateCombinedColumns();
+}
+
+
+
+
+
+
+  async deleteColumn(columnId: string) {
+    if (!this.specSheetId) return;
+    const column = this.displayedColumns.find(col => col.id === columnId);
+    const columnNameUpper = column.headerName.toUpperCase();
+    const userInput = prompt(`⚠️ Type 'delete' to confirm deleting column: ${columnNameUpper}`);
+    if (userInput?.toLowerCase() !== "delete") {
+      console.log("❌ Deletion canceled.");
       return;
     }
   
     try {
-      // ✅ Fetch spec sheet for the active tab
-      const specSheetsRef = collection(this.firestore, 'specSheets');
-      const specSheetQuery = query(specSheetsRef, where('tabId', '==', this.activeTabId));
-      const specSheets = await firstValueFrom(collectionData(specSheetQuery, { idField: 'id' }));
+      console.log(`🗑️ Deleting column: ${columnId}`);
   
-      if (specSheets.length === 0) {
-        alert('⚠️ No spec sheet found for this tab.');
-        return;
-      }
+      // ✅ Delete column document from Firestore
+      const columnRef = doc(this.firestore, `specSheets/${this.specSheetId}/columns/${columnId}`);
+      await deleteDoc(columnRef);
+      console.log(`✅ Column ${columnId} deleted from Firestore.`);
   
-      const specSheetId = specSheets[0].id;
-  
-      // ✅ Create a sanitized field name
-      const sanitizedField = newColumnName.toLowerCase().replace(/\s+/g, '_');
-  
-      // ✅ Check if the column already exists in this tab
-      const columnsRef = collection(this.firestore, 'specSheetColumns');
-      const columnsQuery = query(columnsRef, where('specSheetId', '==', specSheetId), where('field', '==', sanitizedField));
-      const existingColumns = await firstValueFrom(collectionData(columnsQuery));
-  
-      if (existingColumns.length > 0) {
-        alert(`⚠️ Column "${newColumnName}" already exists in this tab.`);
-        return;
-      }
-  
-      // ✅ Add the new column
-      const newCol = {
-        id: uuidv4(),
-        specSheetId: specSheetId,
-        headerName: newColumnName,
-        field: sanitizedField,
-        order: columnOrder,
-        createdAt: new Date()
-      };
-  
-      await setDoc(doc(columnsRef, newCol.id), newCol);
-      alert(`✅ Column "${newColumnName}" added successfully!`);
+      // ✅ Remove column field from all rows
+      await this.removeColumnFromRows(columnId);
   
       // ✅ Update UI
-      this.displayedColumns.push(newCol);
+      this.displayedColumns = this.displayedColumns.filter(col => col.id !== columnId);
       this.updateCombinedColumns();
+      console.log(`✅ Column ${columnId} removed from UI.`);
+      
     } catch (error) {
-      console.error('❌ Error adding column:', error);
-      alert('❌ Failed to add column. Please try again.');
+      console.error("❌ Error deleting column:", error);
     }
   }
-
-
-
-  /** ✅ Delete Column */
-  deleteColumn(field: string) {
-    this.displayedColumns = this.displayedColumns.filter(col => col.field !== field);
-    this.updateCombinedColumns();
-    const columnsRef = doc(this.firestore, `specSheetColumns/${field}`);
-    deleteDoc(columnsRef);
+  async removeColumnFromRows(columnId: string) {
+    if (!this.specSheetId) return;
+  
+    console.log(`🔄 Removing field "${columnId}" from all rows...`);
+  
+    const rowsRef = collection(this.firestore, `specSheets/${this.specSheetId}/rows`);
+    const rowsSnapshot = await getDocs(rowsRef);
+    const batch = writeBatch(this.firestore);
+  
+    rowsSnapshot.forEach((docSnap) => {
+      const rowData = docSnap.data();
+  
+      if (rowData[columnId] !== undefined) {
+        const updatedRowData = { ...rowData };
+        delete updatedRowData[columnId]; // Remove the column field
+        batch.update(docSnap.ref, updatedRowData);
+      }
+    });
+  
+    try {
+      await batch.commit();
+      console.log(`✅ Field "${columnId}" removed from all rows.`);
+      
+      // ✅ Update UI
+      this.dataSource.data = this.dataSource.data.map(row => {
+        if (row[columnId] !== undefined) {
+          delete row[columnId];
+        }
+        return row;
+      });
+  
+    } catch (error) {
+      console.error("❌ Error updating rows:", error);
+    }
   }
 
   /** ✅ Edit Column Name and Order */
-  editColumnName(column: any) {
+  async editColumnName(column: any) {
     const newHeaderName = prompt('Enter new column name:', column.headerName);
     const newOrder = Number(prompt('Enter new column order:', column.order));
-
-    if (newHeaderName && newHeaderName.trim() !== '') {
+  
+    if (!newHeaderName?.trim()) return;
+  
+    // Generate a new field name from the updated column name
+    const newFieldName = newHeaderName.toLowerCase().replace(/\s+/g, '_');
+  
+    // Prevent overwriting an existing column field
+    if (this.displayedColumns.some(col => col.field === newFieldName)) {
+      alert(`⚠️ A column with the name "${newHeaderName}" already exists.`);
+      return;
+    }
+  
+    const columnRef = doc(this.firestore, `specSheets/${this.specSheetId}/columns/${column.id}`);
+  
+    try {
+      // ✅ Update the column name in Firestore
+      await updateDoc(columnRef, {
+        headerName: newHeaderName,
+        field: newFieldName,
+        order: !isNaN(newOrder) ? newOrder : column.order
+      });
+  
+      console.log(`✅ Column updated: ${column.id}`);
+  
+      // ✅ Update rows to transfer data from old field to new field
+      await this.updateRowsForRenamedColumn(column.field, newFieldName);
+  
+      // ✅ Update UI
       column.headerName = newHeaderName;
+      column.field = newFieldName;
+      if (!isNaN(newOrder)) column.order = newOrder;
+      this.updateCombinedColumns();
+  
+    } catch (error) {
+      console.error("❌ Error updating column:", error);
     }
-
-    if (!isNaN(newOrder)) {
-      column.order = newOrder;
-    }
-
-    const columnsRef = doc(this.firestore, `specSheetColumns/${column.field}`);
-    setDoc(columnsRef, column);
-    this.updateCombinedColumns();
   }
 
-  sortColumn(field: string, direction?: 'asc' | 'desc') {
-    const currentDirection = direction || this.sortDirection[field] || 'asc';
-    const newDirection = currentDirection === 'asc' ? 'desc' : 'asc';
+
+  async updateRowsForRenamedColumn(oldField: string, newField: string) {
+    if (!this.specSheetId) return;
   
-    this.sortDirection = {}; // Clear previous sort states
-    this.sortDirection[field] = newDirection;
+    console.log(`🔄 Renaming field "${oldField}" to "${newField}" in all rows...`);
   
-    this.dataSource.data.sort((a, b) => {
-      const aValue = this.parseValue(a[field]);
-      const bValue = this.parseValue(b[field]);
+    const rowsRef = collection(this.firestore, `specSheets/${this.specSheetId}/rows`);
+    const rowsSnapshot = await getDocs(rowsRef);
   
-      return newDirection === 'asc' ? aValue - bValue : bValue - aValue;
+    const batch = writeBatch(this.firestore);
+    
+    rowsSnapshot.forEach((docSnap) => {
+      const rowData = docSnap.data();
+      
+      // Ensure the old field exists in row data
+      if (rowData[oldField] !== undefined) {
+        rowData[newField] = rowData[oldField]; // Copy data to the new field
+        delete rowData[oldField]; // Remove the old field
+        batch.update(docSnap.ref, rowData);
+      }
     });
   
-    this.dataSource._updateChangeSubscription();
+    try {
+      await batch.commit();
+      console.log(`✅ Updated field "${oldField}" to "${newField}" in all rows.`);
+      
+      // Update UI
+      this.dataSource.data = this.dataSource.data.map(row => {
+        if (row[oldField] !== undefined) {
+          row[newField] = row[oldField];
+          delete row[oldField];
+        }
+        return row;
+      });
+  
+    } catch (error) {
+      console.error("❌ Error updating rows:", error);
+    }
   }
-/** ✅ Parse value to handle numbers, decimals, and fractions */
-parseValue(value: string | number): number {
-  if (typeof value === 'number') return value; // Directly return if it's already a number
-  if (typeof value === 'string') return this.parseFraction(value.trim()); // Trim and parse fraction
-  return 0;
-}
+
+
+  sortColumn(columnId: string, direction?: 'asc' | 'desc') {
+    if (!this.specSheetId) return;
+  
+    // ✅ Find the column to update
+    const columnIndex = this.displayedColumns.findIndex(col => col.id === columnId);
+    if (columnIndex === -1) return;
+  
+    // ✅ Determine new order (switch places)
+    const newOrder = this.displayedColumns[columnIndex].order + (direction === 'asc' ? -1 : 1);
+  
+    // ✅ Ensure the new order is within valid range
+    if (newOrder < 0 || newOrder >= this.displayedColumns.length) return;
+  
+    console.log(`🔄 Reordering column ${this.displayedColumns[columnIndex].headerName} to position ${newOrder}`);
+  
+    // ✅ Swap orders with the adjacent column
+    const adjacentIndex = columnIndex + (direction === 'asc' ? -1 : 1);
+    [this.displayedColumns[columnIndex].order, this.displayedColumns[adjacentIndex].order] =
+      [this.displayedColumns[adjacentIndex].order, this.displayedColumns[columnIndex].order];
+  
+    // ✅ Update Firestore with new order
+    const batch = writeBatch(this.firestore);
+    this.displayedColumns.forEach(col => {
+      const colRef = doc(this.firestore, `specSheets/${this.specSheetId}/columns/${col.id}`);
+      batch.update(colRef, { order: col.order });
+    });
+  
+    batch.commit()
+      .then(() => console.log(`✅ Column order updated in Firestore`))
+      .catch(error => console.error("❌ Error updating column order:", error));
+  
+    // ✅ Sort UI based on new order
+    this.displayedColumns.sort((a, b) => a.order - b.order);
+    this.updateCombinedColumns();
+  }
 
 /** ✅ Convert Fractions & Mixed Numbers to Decimal */
 parseFraction(value: string): number {
@@ -410,8 +691,21 @@ parseFraction(value: string): number {
   return parseFloat(value) || 0; // If not a fraction, try parsing as a decimal
 }
 
-  /** ✅ Upload PDF */
-  async uploadPDF(row: any) {
+/** ✅ Save Row */
+async saveRow(row: any) {
+  if (!this.specSheetId) return;
+
+  const rowRef = doc(this.firestore, `specSheets/${this.specSheetId}/rows/${row.id}`);
+  try {
+    await setDoc(rowRef, row, { merge: true }); // ✅ Create if missing, update if exists
+    console.log(`✅ Row ${row.id} saved successfully.`);
+  } catch (error) {
+    console.error(`❌ Error saving row ${row.id}:`, error);
+  }
+}
+
+   /** ✅ Upload PDF */
+   async uploadPDF(row: any) {
     const input = document.createElement('input');
     input.type = 'file';
     input.accept = 'application/pdf';
