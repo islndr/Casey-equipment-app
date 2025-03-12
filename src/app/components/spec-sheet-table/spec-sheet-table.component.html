@@ -36,8 +36,13 @@
             <th mat-header-cell *matHeaderCellDef class="text-uppercase text-center sortable" (click)="sortColumn(column.field)">
               <div class="d-flex justify-content-center align-items-center">
                 <span>{{ column.headerName.toUpperCase() }}</span>
-                <span class="sort-icon">▲▼</span>
+                <span class="sort-icon">
+                  <ng-container *ngIf="sortDirection[column.field] === 'asc'">▲</ng-container>
+                  <ng-container *ngIf="sortDirection[column.field] === 'desc'">▼</ng-container>
+                  <ng-container *ngIf="!sortDirection[column.field]">▲▼</ng-container>
+                </span>
               </div>
+           
     
               <div class="d-flex justify-content-center move-buttons mt-1">
                 <button class="btn btn-sm btn-arrow" *ngIf="i > 0" (click)="moveColumnLeft(i)" title="Move Left">

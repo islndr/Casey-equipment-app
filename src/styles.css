@@ -20,3 +20,17 @@ body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
   .mdc-checkbox__native-control:enabled:checked~.mdc-checkbox__background, .mdc-checkbox__native-control:enabled:indeterminate~.mdc-checkbox__background {
     background-color: #FFC107 !important;
   }
+  @media (max-width: 768px) {
+    .btn {
+      font-size: 14px; /* Make buttons more tappable */
+      padding: 10px;
+    }
+  
+    table {
+      font-size: 12px; /* Reduce table font size */
+    }
+  
+    .table-responsive {
+      overflow-x: auto; /* Enable horizontal scrolling */
+    }
+  }

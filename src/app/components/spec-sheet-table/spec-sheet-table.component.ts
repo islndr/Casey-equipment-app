@@ -54,7 +54,7 @@ export class SpecSheetTableComponent implements OnInit, OnChanges {
   editingRowId: string | null = null;
   pdfModalOpen: boolean = false;
   selectedPDFRow: any = null;
-  sortDirection: { [key: string]: 'asc' | 'desc' } = {};
+  sortDirection: { [key: string]: 'asc' | 'desc' | undefined } = {};
    @Input() activeTabId: string | null = null;
    specSheetId: string | null = null;
 
@@ -358,14 +358,13 @@ onClickOutside(event: MouseEvent) {
     if (!this.activeTabId) return;
   
     const newColumnName = prompt('Enter new column name:');
-    const columnOrder = Number(prompt('Enter column order:'));
   
-    if (!newColumnName?.trim() || isNaN(columnOrder)) {
-      alert("⚠️ Invalid column name or order.");
+    if (!newColumnName?.trim()) {
+      alert("⚠️ Invalid column name.");
       return;
     }
   
-    // ✅ Fetch spec sheet for the active tab
+    // ✅ Fetch existing columns
     const specSheetsRef = collection(this.firestore, 'specSheets');
     const specSheetQuery = query(specSheetsRef, where('tabId', '==', this.activeTabId));
     const specSheets = await firstValueFrom(collectionData(specSheetQuery, { idField: 'id' }));
@@ -377,12 +376,18 @@ onClickOutside(event: MouseEvent) {
   
     this.specSheetId = specSheets[0].id;
   
-    // ✅ Generate a sanitized field name
-    const sanitizedField = newColumnName.toLowerCase().replace(/\s+/g, '_');
-  
-    // ✅ Check if the column already exists in Firestore
     const columnsRef = collection(this.firestore, `specSheets/${this.specSheetId}/columns`);
     const existingColumns = await firstValueFrom(collectionData(columnsRef, { idField: 'id' }));
+  
+    // ✅ Determine new column order (append at the end)
+    const newOrder = existingColumns.length > 0 
+      ? Math.max(...existingColumns.map(col => col['order'] ?? 0)) + 1 
+      : 1;
+  
+    // ✅ Create a sanitized field name
+    const sanitizedField = newColumnName.toLowerCase().replace(/\s+/g, '_');
+  
+    // ✅ Ensure column does not already exist
     if (existingColumns.some(col => col['field'] === sanitizedField)) {
       alert(`⚠️ Column "${newColumnName}" already exists.`);
       return;
@@ -393,7 +398,7 @@ onClickOutside(event: MouseEvent) {
       id: uuidv4(),
       headerName: newColumnName,
       field: sanitizedField,
-      order: columnOrder,
+      order: newOrder, // ✅ Auto-assigned order number
       createdAt: new Date()
     };
   
@@ -545,14 +550,13 @@ refreshColumnOrder() {
   /** ✅ Edit Column Name and Order */
   async editColumnName(column: any) {
     const newHeaderName = prompt('Enter new column name:', column.headerName);
-    const newOrder = Number(prompt('Enter new column order:', column.order));
   
     if (!newHeaderName?.trim()) return;
   
-    // Generate a new field name from the updated column name
+    // ✅ Generate a new field name from the updated column name
     const newFieldName = newHeaderName.toLowerCase().replace(/\s+/g, '_');
   
-    // Prevent overwriting an existing column field
+    // ✅ Prevent overwriting an existing column field
     if (this.displayedColumns.some(col => col.field === newFieldName)) {
       alert(`⚠️ A column with the name "${newHeaderName}" already exists.`);
       return;
@@ -564,19 +568,41 @@ refreshColumnOrder() {
       // ✅ Update the column name in Firestore
       await updateDoc(columnRef, {
         headerName: newHeaderName,
-        field: newFieldName,
-        order: !isNaN(newOrder) ? newOrder : column.order
+        field: newFieldName
       });
+      this.sortColumn = (field: string) => {
+        // Toggle between ascending, descending, and default (no sorting)
+        if (this.sortDirection[field] === 'asc') {
+          this.sortDirection[field] = 'desc';
+        } else if (this.sortDirection[field] === 'desc') {
+          this.sortDirection[field] = undefined;
+        } else {
+          this.sortDirection[field] = 'asc';
+        }
+      
+        // Sort the data
+        this.dataSource.data.sort((a, b) => {
+          const aValue = this.parseValue(a[field]);
+          const bValue = this.parseValue(b[field]);
+      
+          if (this.sortDirection[field] === 'asc') {
+            return (aValue as number) - (bValue as number);
+          } else if (this.sortDirection[field] === 'desc') {
+            return (bValue as number) - (aValue as number);
+          } else {
+            return 0; // No sorting
+          }
+        });
+      
+        // Refresh the UI
+        this.dataSource._updateChangeSubscription();
+      }
   
       console.log(`✅ Column updated: ${column.id}`);
-  
-      // ✅ Update rows to transfer data from old field to new field
-      await this.updateRowsForRenamedColumn(column.field, newFieldName);
   
       // ✅ Update UI
       column.headerName = newHeaderName;
       column.field = newFieldName;
-      if (!isNaN(newOrder)) column.order = newOrder;
       this.updateCombinedColumns();
   
     } catch (error) {
@@ -625,71 +651,90 @@ refreshColumnOrder() {
   }
 
 
-  sortColumn(columnId: string, direction?: 'asc' | 'desc') {
-    if (!this.specSheetId) return;
-  
-    // ✅ Find the column to update
-    const columnIndex = this.displayedColumns.findIndex(col => col.id === columnId);
-    if (columnIndex === -1) return;
-  
-    // ✅ Determine new order (switch places)
-    const newOrder = this.displayedColumns[columnIndex].order + (direction === 'asc' ? -1 : 1);
-  
-    // ✅ Ensure the new order is within valid range
-    if (newOrder < 0 || newOrder >= this.displayedColumns.length) return;
-  
-    console.log(`🔄 Reordering column ${this.displayedColumns[columnIndex].headerName} to position ${newOrder}`);
-  
-    // ✅ Swap orders with the adjacent column
-    const adjacentIndex = columnIndex + (direction === 'asc' ? -1 : 1);
-    [this.displayedColumns[columnIndex].order, this.displayedColumns[adjacentIndex].order] =
-      [this.displayedColumns[adjacentIndex].order, this.displayedColumns[columnIndex].order];
-  
-    // ✅ Update Firestore with new order
-    const batch = writeBatch(this.firestore);
-    this.displayedColumns.forEach(col => {
-      const colRef = doc(this.firestore, `specSheets/${this.specSheetId}/columns/${col.id}`);
-      batch.update(colRef, { order: col.order });
+  sortColumn(field: string) {
+    // Reset sorting for other columns
+    Object.keys(this.sortDirection).forEach(key => {
+      if (key !== field) {
+        this.sortDirection[key] = undefined; // Reset to default state
+      }
     });
   
-    batch.commit()
-      .then(() => console.log(`✅ Column order updated in Firestore`))
-      .catch(error => console.error("❌ Error updating column order:", error));
+    // Toggle sorting direction for the selected column
+    if (!this.sortDirection[field] || this.sortDirection[field] === 'desc') {
+      this.sortDirection[field] = 'asc';
+    } else {
+      this.sortDirection[field] = 'desc';
+    }
   
-    // ✅ Sort UI based on new order
-    this.displayedColumns.sort((a, b) => a.order - b.order);
-    this.updateCombinedColumns();
+    console.log(`🔄 Sorting rows by: ${field}, Direction: ${this.sortDirection[field]}`);
+  
+    this.dataSource.data.sort((a, b) => {
+      const aValue = this.parseValue(a[field]);
+      const bValue = this.parseValue(b[field]);
+  
+      if (typeof aValue === 'number' && typeof bValue === 'number') {
+        return this.sortDirection[field] === 'asc' ? aValue - bValue : bValue - aValue;
+      }
+  
+      if (typeof aValue === 'string' && typeof bValue === 'string') {
+        return this.sortDirection[field] === 'asc'
+          ? aValue.localeCompare(bValue)
+          : bValue.localeCompare(aValue);
+      }
+  
+      return 0;
+    });
+  
+    // ✅ Refresh UI
+    this.dataSource._updateChangeSubscription();
+  }
+  
+  parseValue(value: string | number): number | string {
+    if (typeof value === 'number') return value; // If it's a number, return as is
+    if (typeof value === 'string') {
+      value = value.trim();
+  
+      // Check if it's a fraction (e.g., "1/3", "3 1/2")
+      if (value.includes('/')) {
+        return this.parseFraction(value);
+      }
+  
+      // Check if it's a number (including decimals)
+      const numberValue = parseFloat(value);
+      if (!isNaN(numberValue)) {
+        return numberValue;
+      }
+  
+      // Default: return the string itself for alphabetical sorting
+      return value.toLowerCase();
+    }
+    return value;
   }
 
-/** ✅ Convert Fractions & Mixed Numbers to Decimal */
-parseFraction(value: string): number {
-  if (!value) return 0;
-
-  // Remove extra spaces
-  value = value.trim();
-
-  // Handle whole numbers and decimals
-  if (!value.includes('/')) return parseFloat(value) || 0;
-
-  // Handle mixed fractions (e.g., "3 3/4")
-  const mixedFractionMatch = value.match(/^(\d+)\s+(\d+)\/(\d+)$/);
-  if (mixedFractionMatch) {
-    const whole = parseInt(mixedFractionMatch[1], 10);
-    const numerator = parseInt(mixedFractionMatch[2], 10);
-    const denominator = parseInt(mixedFractionMatch[3], 10);
-    return whole + numerator / denominator;
+  parseFraction(value: string): number {
+    if (!value) return 0;
+  
+    value = value.trim();
+  
+    // Handle mixed fractions (e.g., "3 3/4")
+    const mixedFractionMatch = value.match(/^(\d+)\s+(\d+)\/(\d+)$/);
+    if (mixedFractionMatch) {
+      const whole = parseInt(mixedFractionMatch[1], 10);
+      const numerator = parseInt(mixedFractionMatch[2], 10);
+      const denominator = parseInt(mixedFractionMatch[3], 10);
+      return whole + numerator / denominator;
+    }
+  
+    // Handle simple fractions (e.g., "1/4")
+    const fractionMatch = value.match(/^(\d+)\/(\d+)$/);
+    if (fractionMatch) {
+      const numerator = parseInt(fractionMatch[1], 10);
+      const denominator = parseInt(fractionMatch[2], 10);
+      return numerator / denominator;
+    }
+  
+    return parseFloat(value) || 0; // If not a fraction, try parsing as a decimal
   }
-
-  // Handle simple fractions (e.g., "1/4")
-  const fractionMatch = value.match(/^(\d+)\/(\d+)$/);
-  if (fractionMatch) {
-    const numerator = parseInt(fractionMatch[1], 10);
-    const denominator = parseInt(fractionMatch[2], 10);
-    return numerator / denominator;
-  }
-
-  return parseFloat(value) || 0; // If not a fraction, try parsing as a decimal
-}
 
 /** ✅ Save Row */
 async saveRow(row: any) {

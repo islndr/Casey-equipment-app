@@ -1,0 +1,8 @@
+<div class="ios-spec-sheet-container">
+    <div *ngFor="let row of sortedRows()" class="spec-sheet-card" (click)="openPDF(row.pdfLink)">
+        <h3 class="card-title">{{ getFirstValue(row) }}</h3>
+        <div *ngFor="let key of getKeys(row)">
+            <p><strong>{{ transformKey(key) }}:</strong> {{ row[key] }}</p>
+          </div>
+      </div>
+  </div>

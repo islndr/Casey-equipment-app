@@ -89,28 +89,13 @@ export class AuthService {
   }
 
   async login(email: string, password: string, rememberMe: boolean) {
+    console.log("Attempting login:", email, password); // Add this line
     try {
-      // ✅ Set persistence BEFORE sign-in
-      const persistenceType = rememberMe ? browserLocalPersistence : browserSessionPersistence;
-      await setPersistence(this.auth, persistenceType);
-  
       const userCredential = await signInWithEmailAndPassword(this.auth, email, password);
-      const user = userCredential.user;
-  
-      // ✅ Ensure user exists in Firestore
-      await this.ensureUserInFirestore(user.uid, user.email);
-  
-      // ✅ Store session data for quick access
-      const sessionData = { uid: user.uid, email: user.email, role: this.getRole() };
-      if (rememberMe) {
-        localStorage.setItem('user', JSON.stringify(sessionData));
-      } else {
-        sessionStorage.setItem('user', JSON.stringify(sessionData));
-      }
-  
+      console.log("✅ Firebase Login Success", userCredential);
       return userCredential;
     } catch (error) {
-      console.error('❌ Login Error:', error);
+      console.error("❌ Login Error:", error);
       throw error;
     }
   }

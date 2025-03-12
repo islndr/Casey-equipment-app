@@ -1,0 +1,7 @@
+<div class="pdf-container">
+    <button class="close-button" (click)="closeViewer()">✖️</button>
+  
+    <iframe *ngIf="pdfUrl" [src]="pdfUrl | safe:'resourceUrl'" class="pdf-viewer"></iframe>
+  
+    <button class="share-button" (click)="sharePDF()">📤 Share</button>
+  </div>

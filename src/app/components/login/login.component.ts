@@ -28,6 +28,8 @@ export class LoginComponent {
   
   constructor(private auth: Auth, private firestore: Firestore, private router: Router, private zone: NgZone, private authService: AuthService) {}
 
+
+  
   async login() {
     this.errorMessage = ''; // Clear previous errors
   
@@ -43,8 +45,9 @@ export class LoginComponent {
   
       if (!userDoc.exists()) {
         throw new Error("User not found.");
+      
       }
-  
+      console.log("Login button clicked with", this.email, this.password);
       const userData = userDoc.data();
       const role = userData?.['role'] || 'editor'; // Default to "editor"
       
@@ -78,7 +81,13 @@ export class LoginComponent {
           errorMessage = "Too many failed attempts. Please try again later.";
           break;
       }
-  
+      this.authService.login(this.email, this.password, this.rememberMe).then(() => {
+        console.log("✅ Login successful!");
+        this.router.navigate(['/dashboard']); // Ensure navigation
+      }).catch(error => {
+        console.error("❌ Login failed:", error);
+      });
+      
       // ✅ Force update the UI using NgZone
       this.zone.run(() => {
         this.errorMessage = errorMessage;

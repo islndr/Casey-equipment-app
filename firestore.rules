@@ -25,7 +25,7 @@ service cloud.firestore {
 
       // 🔹 SPEC SHEETS Collection
     match /specSheets/{specSheetId} {
-      allow read: if request.auth != null;
+       allow read: if true;
 
       // ✅ Only editors and admins can modify spec sheets
       allow write, delete: if request.auth != null &&
@@ -33,14 +33,14 @@ service cloud.firestore {
 
       // 🔹 SPEC SHEET ROWS
       match /rows/{rowId} {
-        allow read: if request.auth != null;
+        allow read: if true;
         allow write, delete: if request.auth != null &&
           get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ['editor', 'admin'];
       }
 
       // 🔹 SPEC SHEET COLUMNS
       match /columns/{columnId} {
-        allow read: if request.auth != null;
+         allow read: if true;
         allow write, delete: if request.auth != null &&
           get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ['editor', 'admin'];
       }
@@ -48,10 +48,17 @@ service cloud.firestore {
 
     // 🔹 TABS Collection
     match /tabs/{tabId} {
-      allow read: if request.auth != null;
+     allow read: if true;
       allow write, delete: if request.auth != null &&
         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ['editor', 'admin'];
     }
+        // 🔹 PDFs Collection - READ-ONLY ACCESS
+    match /pdfs/{pdfId} {
+      allow read: if true;  // ✅ Public read access for iOS app
+      allow write: if request.auth != null &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ["editor", "admin"];
+    }
   }
+
   
 }
