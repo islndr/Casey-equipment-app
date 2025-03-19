@@ -1,8 +1,25 @@
-<div class="ios-spec-sheet-container">
-    <div *ngFor="let row of sortedRows()" class="spec-sheet-card" (click)="openPDF(row.pdfLink)">
-        <h3 class="card-title">{{ getFirstValue(row) }}</h3>
-        <div *ngFor="let key of getKeys(row)">
-            <p><strong>{{ transformKey(key) }}:</strong> {{ row[key] }}</p>
-          </div>
+<div class="ios-spec-sheet-container" (swipeRight)="goBack()">
+    <div class="header">
+        <button class="none" (click)="goBack()">
+            <span class="material-icons">keyboard_double_arrow_left</span>
+        </button>
       </div>
+      
+
+
+<!-- Your existing code for displaying spec sheet cards -->
+<div *ngFor="let row of sortedRows()" class="spec-sheet-card" (click)="openPDF(row.pdfLink)">
+    <!-- card content -->
+    <h3 class="card-title">{{ getFirstValue(row) }}</h3>
+    <div  *ngFor="let key of getKeys(row)">
+      <p><strong class="card-items">{{ transformKey(key) }}:</strong> {{ row[key] }}</p>
+    </div>
   </div>
+  
+  <!-- Conditionally include the PDF viewer modal -->
+  <app-ios-pdf-viewer 
+    *ngIf="showPdfModal" 
+    [pdfUrl]="currentPdfUrl" 
+    [refreshKey]="refreshKey"
+    [isOpen]="showPdfModal">
+  </app-ios-pdf-viewer>

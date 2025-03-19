@@ -2,7 +2,8 @@ import { Pipe, PipeTransform } from '@angular/core';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 
 @Pipe({
-  name: 'safe'
+  name: 'safe',
+  pure: false 
 })
 export class SafePipe implements PipeTransform {
   constructor(private sanitizer: DomSanitizer) {}
@@ -14,3 +15,6 @@ export class SafePipe implements PipeTransform {
     throw new Error(`Invalid safe type specified: ${type}`);
   }
 }
+
+
+

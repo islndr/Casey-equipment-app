@@ -1,39 +1,70 @@
-.pdf-container {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100vh;
-    background: white;
+.ios-pdf-viewer {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: #212121; /* a dark gray or near-black color */
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  color: #fff; /* ensure text is visible on dark background */
+}
+
+.ios-nav-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 46px;
+  height: 36px;
+  padding: 0 16px;
+  border-bottom: 1px solid #FFC107; /* gold highlight border */
+}
+
+.ios-nav-left,
+.ios-nav-center,
+.ios-nav-right {
+  display: flex;
+  align-items: center;
+}
+
+.ios-nav-title {
+  margin: 0;
+  font-weight: 500;
+  font-size: 17px;
+  color: #FFC107; /* gold text for the title, matching the highlight color */
+}
+
+.ios-nav-btn {
+  background: none;
+  border: none;
+  font-size: 19px;
+  color: #FFC107; /* gold text for buttons */
+  padding: 8px;
+  cursor: pointer;
+}
+
+
+
+
+.pdf-content {
+    width: 100vw;          /* Use full viewport width */
+    max-width: 100vw;      /* Prevent exceeding viewport width */
+    margin-top: 25%;
+    overflow-x: hidden;    /* Hide horizontal overflow */
+    overflow-y: auto;      /* Allow vertical scrolling if needed */
+    background: #fff;      /* Optional: background color for contrast */
     display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
   }
-  
-  .close-button {
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    font-size: 20px;
-    background: none;
+
+  .pdf-object, /* or .pdf-iframe if you're using an iframe */
+  iframe > * {
+    width: 100vw !important;
+    height: 100%;
     border: none;
-    cursor: pointer;
+    background: #fff; /* or match your theme */
   }
+ 
+
+ 
   
-  .pdf-viewer {
-    width: 90%;
-    height: 80%;
-    border: none;
-  }
-  
-  .share-button {
-    margin-top: 15px;
-    padding: 10px 20px;
-    font-size: 16px;
-    background-color: #007bff;
-    color: white;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-  }

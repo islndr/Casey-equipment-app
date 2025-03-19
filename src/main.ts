@@ -1,5 +1,4 @@
 import { bootstrapApplication } from '@angular/platform-browser';
-import { AppComponent } from './app/app.component';
 import { importProvidersFrom } from '@angular/core';
 import { provideRouter } from '@angular/router';
 import { routes } from './app/app.routes';
@@ -13,15 +12,23 @@ import { provideFirestore, getFirestore } from '@angular/fire/firestore';
 import { provideAuth, getAuth } from '@angular/fire/auth';
 import { environment } from './environments/environment';
 import { AuthGuard } from './app/guards/auth.guard';
+import { PdfViewerComponent } from './app/components/ios-pdf-viewer/ios-pdf-viewer.component';
+import { AppComponent } from './app/app.component';
+import { IOSSpecSheetsComponent } from './app/components/ios-spec-sheets/ios-spec-sheets.component';
+import { defineCustomElements } from 'ionicons/dist/loader';
 
+
+
+defineCustomElements(window);
 bootstrapApplication(AppComponent, {
   providers: [
     provideRouter(routes),
     provideHttpClient(),
     provideAuth(() => getAuth()),
-    provideFirebaseApp(() => initializeApp(environment.firebaseConfig)), // ✅ Initialize Firebase first
+    provideFirebaseApp(() => initializeApp(environment.firebaseConfig)), 
     provideFirestore(() => getFirestore()),
-    provideAnimations(), // ✅ Use default `provideAnimations()` for stability
+    provideAnimations(),
     importProvidersFrom(BrowserAnimationsModule, MatSidenavModule, MatToolbarModule, MatListModule),
+    PdfViewerComponent
   ]
 }).catch(err => console.error(err));

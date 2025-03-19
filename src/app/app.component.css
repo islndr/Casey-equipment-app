@@ -70,13 +70,33 @@
     margin-bottom: 10px; /* Adds spacing */
 }
 
-.logout-btn {
 
-}
 /* ✅ Content Area */
 .content {
     flex-grow: 1; /* 🔥 Ensures content takes full width */
-    padding: 20px;
+    padding: 8px;
     overflow: auto;
-    background: #f4f4f4;
+
+    background: #212121;
+}
+
+.app-toolbar {
+    background: #fff;
+    color: white;
+    border-bottom: 1px solid #FFC107;
+  
+    height: 150px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.mat-toolbar-single-row {
+    padding: 0px;
+    position: flex;
+}
+
+img {
+    height: 113px;
+    padding-top: .5rem;
 }

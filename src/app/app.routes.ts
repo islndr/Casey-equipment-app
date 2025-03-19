@@ -7,6 +7,9 @@ import { LoginComponent } from './components/login/login.component';
 import { AuthGuard } from './guards/auth.guard';
 import { IOSTabsComponent } from './components/ios-tabs/ios-tabs.component';
 import { IOSSpecSheetsComponent } from './components/ios-spec-sheets/ios-spec-sheets.component';
+import { PdfViewerComponent } from './components/ios-pdf-viewer/ios-pdf-viewer.component';
+
+
 
 export const routes: Routes = [
   { path: '', component: IOSTabsComponent }, // Default to Tabs
@@ -16,8 +19,13 @@ export const routes: Routes = [
   { path: 'admin', component: AdminPanelComponent, canActivate: [AuthGuard] }, // ✅ Use AuthGuard
   { path: 'tabs', component: TabsComponent, canActivate: [AuthGuard] }, // ✅ Use AuthGuard
   { path: 'ios', component: IOSAppComponent },
-  
-  { path: '**', redirectTo: '/ios' }
+  { path: 'ios-pdf-viewer', component: PdfViewerComponent },
+  { path: '**', redirectTo: '/ios' },
+  {
+    path: 'ios-pdf-viewer',
+    loadComponent: () =>
+      import('./components/ios-pdf-viewer/ios-pdf-viewer.component').then(c => c.PdfViewerComponent)
+  }
 ];
 
 
@@ -29,7 +37,3 @@ export const routes: Routes = [
   exports: [RouterModule]
 })
 export class AppRoutingModule {}
-
-
-
-

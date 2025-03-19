@@ -1,21 +1,15 @@
-// src/app/app.component.ts
 import { Component } from '@angular/core';
-import { RouterModule, RouterOutlet } from '@angular/router';
+import { RouterOutlet } from '@angular/router';
+import { CommonModule } from '@angular/common';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatSidenavModule } from '@angular/material/sidenav';
 import { MatIconModule } from '@angular/material/icon';
 import { MatListModule } from '@angular/material/list';
 import { MatButtonModule } from '@angular/material/button';
 import { AuthService } from './services/auth.service';
-import { CommonModule } from '@angular/common';
-
-
-import { HammerModule, HAMMER_GESTURE_CONFIG } from '@angular/platform-browser';
-import { MyHammerConfig } from '../hammer.config';
-
 
 @Component({
-  selector: 'app-root',
+  selector: 'app-web',
   standalone: true,
   imports: [
     RouterOutlet,
@@ -24,29 +18,19 @@ import { MyHammerConfig } from '../hammer.config';
     MatIconModule,
     MatListModule,
     MatButtonModule,
-    CommonModule,
-    RouterModule,
-    HammerModule
-   
-  
+    CommonModule
   ],
-  providers: [AuthService,
-    {
-      provide: HAMMER_GESTURE_CONFIG,
-      useClass: MyHammerConfig
-    },
-  ],
-  templateUrl: `./app.component.html`,
-  styleUrls: ['./app.component.css']
+  providers: [AuthService],
+  templateUrl: `./web.component.html`,
+  styleUrls: ['./web.component.css']
 })
-export class AppComponent {
+export class WebComponent {
   constructor(public authService: AuthService) {}
+
   title = 'casey-equipment-app';
   isSidebarOpen = true; // Default state
 
   toggleSidebar() {
     this.isSidebarOpen = !this.isSidebarOpen;
-
   }
 }
-

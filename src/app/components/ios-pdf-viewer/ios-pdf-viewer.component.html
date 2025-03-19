@@ -1,7 +1,24 @@
-<div class="pdf-container">
-    <button class="close-button" (click)="closeViewer()">✖️</button>
+<div class="ios-pdf-viewer" *ngIf="isOpen" (swipeDown)="closeModal()">
+    <!-- Navigation Bar -->
+    <div class="ios-nav-bar">
+      <div class="ios-nav-left">
+        <button type="button"  *ngIf="isOpen"  class="ios-nav-btn" (click)="closeModal()">Done</button>
+      </div>
+
+      <div class="ios-nav-right">
+        <button type="button" class="ios-nav-btn" (click)="sharePdf()">
+          <ion-icon name="share-outline"></ion-icon>
+        </button>
+      </div>
+    </div>
   
-    <iframe *ngIf="pdfUrl" [src]="pdfUrl | safe:'resourceUrl'" class="pdf-viewer"></iframe>
-  
-    <button class="share-button" (click)="sharePDF()">📤 Share</button>
-  </div>
+    <!-- PDF Content -->
+<div class="pdf-content">
+  <object 
+    [data]="pdfUrl | safe:'resourceUrl'" 
+    type="application/pdf" 
+    width="100%" 
+    height="100%">
+    <p>Your browser does not support PDFs.</p>
+  </object>
+</div>

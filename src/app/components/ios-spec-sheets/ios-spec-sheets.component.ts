@@ -5,20 +5,34 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 import { Auth, onAuthStateChanged } from '@angular/fire/auth';
 import { NgFor } from '@angular/common'; // ✅ Import NgFor & NgIf
+import { PdfViewerComponent } from '../ios-pdf-viewer/ios-pdf-viewer.component';
+import { CommonModule } from '@angular/common';
+
+
+
 
 @Component({
   selector: 'app-ios-spec-sheets',
   standalone: true,
   templateUrl: './ios-spec-sheets.component.html',
   styleUrls: ['./ios-spec-sheets.component.css'],
-  imports: [NgFor], // ✅ Add NgFor & NgIf to imports
+  imports: [NgFor, PdfViewerComponent, CommonModule], // ✅ Add NgFor & NgIf to imports
 })
+
+
+
+
+
 export class IOSSpecSheetsComponent implements OnInit, OnChanges {
   displayedColumns: any[] = [];
   combinedColumns: string[] = [];
   dataSource = new MatTableDataSource<any>([]);
   @Input() activeTabId: string | null = null;
   specSheetId: string | null = null;
+currentPdfUrl: string = '';
+  refreshKey: number = Date.now();
+  showPdfModal: boolean = false;
+
 
   constructor(
     private firestore: Firestore,
@@ -26,6 +40,8 @@ export class IOSSpecSheetsComponent implements OnInit, OnChanges {
     private router: Router,
     private auth: Auth
   ) {}
+
+
 
   async ngOnInit(): Promise<void> {
     this.activeTabId = this.route.snapshot.paramMap.get('id');
@@ -45,7 +61,14 @@ export class IOSSpecSheetsComponent implements OnInit, OnChanges {
       }
     });
   }
-
+  onSwipeBack() {
+    console.log('Swipe detected: navigating back to tabs.');
+    this.router.navigate(['/iostabs']); // adjust the route as needed
+  }
+  goBack() {
+    console.log('Back button clicked: navigating back to tabs.');
+    this.router.navigate(['/iostabs']); // change to your desired route if needed
+  }
   async ngOnChanges(changes: SimpleChanges) {
     if (changes['activeTabId'] && changes['activeTabId'].currentValue) {
       console.log(`🔄 Reloading spec sheet for tab: ${this.activeTabId}`);
@@ -170,10 +193,26 @@ export class IOSSpecSheetsComponent implements OnInit, OnChanges {
     return firstKey ? row[firstKey] : 'Unnamed'; // Return the first value
   }
   
+ 
   openPDF(pdfUrl: string) {
     if (!pdfUrl) {
+      console.error('No PDF URL provided.');
       return;
     }
-    window.open(pdfUrl, '_blank'); // ✅ Opens PDF in a new tab
+    
+    // First, hide the PDF viewer and clear the URL to force removal
+    this.showPdfModal = false;
+    this.currentPdfUrl = '';  // clear the URL
+  
+    // After a short delay, update the refresh key and set the new URL, then show the viewer
+    setTimeout(() => {
+      // Generate a new refresh key (used to force re-creation)
+      this.refreshKey = Date.now();
+      // Set the new PDF URL (you can also append the refresh key as a query parameter)
+      this.currentPdfUrl = pdfUrl;
+      // Show the modal again so the PDF viewer is recreated
+      this.showPdfModal = true;
+    }, 100); // delay of 100ms (adjust if needed)
   }
 }
+

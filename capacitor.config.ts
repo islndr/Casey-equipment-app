@@ -1,18 +1,15 @@
 import { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'com.caseyequipment.app',
+  appId: 'app.caseyequipment.app',
   appName: 'Casey Equipment',
   webDir: 'dist/casey-equipment-app/browser',
   server: {
-    cleartext: true
+    cleartext: true,
+    url: 'http://localhost:4200'
   },
-  plugins: {
-    FirebaseAuthentication: {
-      skipNativeAuth: false,
-      providers: ["google.com", "apple.com", "facebook.com"]
-    }
-  }
+
 };
 
 export default config;
+

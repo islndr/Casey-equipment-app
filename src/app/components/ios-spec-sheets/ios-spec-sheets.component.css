@@ -1,22 +1,64 @@
+
+
 .ios-spec-sheet-container {
+  
+ 
+    gap: 12px;
+
+
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: #212121; /* a dark gray or near-black color */
+    z-index: 9999;
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    color: #fff; /* ensure text is visible on dark background */
+  }
+
+  .header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    height: 36px;
+    padding: 0px;
+    border-bottom: 1px solid #FFC107; /* gold highlight border */
   }
   
   .spec-sheet-card {
-    background: #ffffff;
+    background: #444;
     border-radius: 8px;
     padding: 12px;
     box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+    color: #fff
   }
   
   .card-title {
     font-size: 18px;
     font-weight: bold;
     margin-bottom: 8px;
+    color: #FFC107;
+  }
+
+  .card-items {
+    color: #FFC107;
   }
   
   .card-content {
     font-size: 14px;
+  }
+
+
+
+.none {
+    background: none;
+    border: none;
+}
+  .material-icons {
+    
+    color: #FFC107;
+  background: none;
+    cursor: pointer;
   }
