@@ -2,8 +2,21 @@
   "storage": {
     "rules": "storage.rules"
   },
-
   "firestore": {
     "rules": "firestore.rules"
+  },
+  "hosting": {
+    "public": "dist/casey-equipment-app/browser",
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**"
+    ],
+    "rewrites": [
+      {
+        "source": "**",
+        "destination": "/index.html"
+      }
+    ]
   }
 }

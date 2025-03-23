@@ -1,5 +1,8 @@
 {
   "projects": {
-    "default": "casey-equipment-app"
-  }
+    "default": "casey-equipment-app",
+    "prod": "casey-equipment-app"
+  },
+  "targets": {},
+  "etags": {}
 }
