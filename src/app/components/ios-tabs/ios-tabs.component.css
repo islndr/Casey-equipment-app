@@ -1,19 +1,49 @@
+.ios-tabs-container {
+  padding: 20px;
+  background-color: #121212; /* Dark background */
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+}
+
+.page-title {
+  font-size: 24px;
+  font-weight: 600;
+  color: #FFC107;
+  text-align: center;
+  margin-bottom: 24px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.tab-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  flex-grow: 1;
+}
+
 .tab-card {
-    display: block;
-    width: 100%;
-    padding: 20px;
-    background:#FFC107;
-    color: #1e1e1e;
-    font-size: 18px;
-    font-weight: bold;
-    border: none;
-    border-radius: 6px;
-    text-align: center;
-    cursor: pointer;
-    transition: 0.3s;
-  }
-  
-  
-  .tab-title {
-    text-transform: uppercase;
-  }
+  padding: 16px 20px;
+  background-color: #1e1e1e;
+  border-radius: 10px;
+  border: 1px solid #FFC107;
+  color: #fff;
+  text-align: center;
+  font-size: 18px;
+  font-weight: 500;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  box-shadow: 0 2px 8px rgba(255, 193, 7, 0.1);
+  width: 100%;
+}
+
+.tab-card:active, .tab-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(255, 193, 7, 0.2);
+  background-color: #FFC107;
+}
+
+.hero-img{
+    margin-top: 12vh;
+}
