@@ -1,0 +1,27 @@
+<div class="contact-management-container">
+    <h2>Manage Contacts</h2>
+  
+    <!-- Contact Form -->
+    <div class="contact-form">
+      <select class="form-select" [(ngModel)]="newContact.type">
+        <option value="" disabled selected>Select Type</option>
+        <option value="Phone">Phone</option>
+        <option value="Fax">Fax</option>
+        <option value="Email">Email</option>
+        <option value="Address">Address</option>
+      </select>
+      
+      <input [(ngModel)]="newContact.value" placeholder="Enter Contact Info" />
+      
+      <button (click)="addContact()">➕ Add</button>
+    </div>
+  
+    <!-- Contacts List -->
+    <div *ngFor="let contact of contacts$ | async" class="contact-item">
+      <strong>{{ contact.type }}:</strong>
+      <input [(ngModel)]="contact.value" />
+      
+      <button (click)="updateContact(contact)">💾 Update</button>
+      <button *ngIf="contact.id" (click)="deleteContact(contact.id)">🗑️ Delete</button>
+    </div>
+  </div>

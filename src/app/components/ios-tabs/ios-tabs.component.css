@@ -2,20 +2,17 @@
     display: block;
     width: 100%;
     padding: 20px;
-    background: linear-gradient(135deg, #007bff, #00c3ff);
-    color: white;
+    background:#FFC107;
+    color: #1e1e1e;
     font-size: 18px;
     font-weight: bold;
     border: none;
-    border-radius: 10px;
+    border-radius: 6px;
     text-align: center;
     cursor: pointer;
     transition: 0.3s;
   }
   
-  .tab-card:hover {
-    transform: scale(1.05);
-  }
   
   .tab-title {
     text-transform: uppercase;

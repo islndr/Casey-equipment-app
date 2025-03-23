@@ -1,18 +1,18 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { IosTabsComponent } from './ios-tabs.component';
+import { IOSTabsComponent } from './ios-tabs.component';
 
 describe('IosTabsComponent', () => {
-  let component: IosTabsComponent;
-  let fixture: ComponentFixture<IosTabsComponent>;
+  let component: IOSTabsComponent;
+  let fixture: ComponentFixture<IOSTabsComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [IosTabsComponent]
+      imports: [IOSTabsComponent]
     })
     .compileComponents();
 
-    fixture = TestBed.createComponent(IosTabsComponent);
+    fixture = TestBed.createComponent(IOSTabsComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

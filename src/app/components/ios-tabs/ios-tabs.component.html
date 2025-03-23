@@ -1,5 +1,5 @@
 <div class="container text-center mt-4">
-    <h2 class="fw-bold text-uppercase">Equipment Categories</h2>
+
   
     <div class="row mt-3">
       <div *ngFor="let tab of tabs$ | async" class="col-12 col-md-6 col-lg-4 mb-3">
@@ -7,5 +7,11 @@
           <span class="tab-title">{{ tab.name }}</span>
         </button>
       </div>
+      <div class="col-12 col-md-6 col-lg-4 mb-3">
+        <button class="tab-card" [routerLink]="['/ios-contact']">
+          <span class="tab-title">Contact Us</span>
+        </button>
+        </div>
+      
     </div>
   </div>

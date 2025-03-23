@@ -8,7 +8,8 @@ import { AuthGuard } from './guards/auth.guard';
 import { IOSTabsComponent } from './components/ios-tabs/ios-tabs.component';
 import { IOSSpecSheetsComponent } from './components/ios-spec-sheets/ios-spec-sheets.component';
 import { PdfViewerComponent } from './components/ios-pdf-viewer/ios-pdf-viewer.component';
-
+import { ContactManagementComponent } from './components/contact-management/contact-management.component';
+import { IOSContactComponent } from './components/ios-contact/ios-contact.component';
 
 
 export const routes: Routes = [
@@ -20,6 +21,8 @@ export const routes: Routes = [
   { path: 'tabs', component: TabsComponent, canActivate: [AuthGuard] }, // ✅ Use AuthGuard
   { path: 'ios', component: IOSAppComponent },
   { path: 'ios-pdf-viewer', component: PdfViewerComponent },
+  { path: 'contact', component: ContactManagementComponent },
+  { path: 'ios-contact', component: IOSContactComponent },
   { path: '**', redirectTo: '/ios' },
   {
     path: 'ios-pdf-viewer',

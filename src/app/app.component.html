@@ -18,13 +18,13 @@
           <i class="fas fa-user-shield sidebar-icon"></i> 
           <span class="sidebar-text" *ngIf="isSidebarOpen">Users</span>
         </a>
-        <a routerLink="/ios" class="sidebar-item">
-          <i class="fas fa-mobile-alt sidebar-icon"></i> 
-          <span class="sidebar-text" *ngIf="isSidebarOpen">iOS App</span>
-        </a>
+        <a routerLink="/contact" *ngIf="authService.getRole() === 'admin' || authService.getRole() === 'editor'" class="sidebar-item">
+            <i class="fas fa-address-book sidebar-icon"></i> 
+            <span class="sidebar-text" *ngIf="isSidebarOpen">Contact Management</span>
+          </a>
         <a routerLink="/tabs" *ngIf="authService.getRole() === 'admin' || authService.getRole() === 'editor'" class="sidebar-item">
             <i class="fas fa-list sidebar-icon"></i> 
-            <span class="sidebar-text" *ngIf="isSidebarOpen">Spread Sheets</span>
+            <span class="sidebar-text" *ngIf="isSidebarOpen">Spec Sheets</span>
         </a>
         <a href="" class="sidebar-item" (click)="authService.logout()">
             <i class="fas sidebar-icon fa-sign-out-alt"></i>  <span class="sidebar-text" *ngIf="isSidebarOpen">Logout</span>

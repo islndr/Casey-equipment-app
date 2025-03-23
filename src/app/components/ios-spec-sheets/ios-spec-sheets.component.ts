@@ -1,5 +1,5 @@
 import { Component, OnInit, OnChanges, SimpleChanges, Input } from '@angular/core';
-import { Firestore, collection, collectionData, query, where, doc, setDoc } from '@angular/fire/firestore';
+import { Firestore, collection, collectionData, query, where, doc, setDoc, getDoc } from '@angular/fire/firestore';
 import { MatTableDataSource } from '@angular/material/table';
 import { ActivatedRoute, Router } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
@@ -7,6 +7,8 @@ import { Auth, onAuthStateChanged } from '@angular/fire/auth';
 import { NgFor } from '@angular/common'; // ✅ Import NgFor & NgIf
 import { PdfViewerComponent } from '../ios-pdf-viewer/ios-pdf-viewer.component';
 import { CommonModule } from '@angular/common';
+
+
 
 
 
@@ -21,8 +23,6 @@ import { CommonModule } from '@angular/common';
 
 
 
-
-
 export class IOSSpecSheetsComponent implements OnInit, OnChanges {
   displayedColumns: any[] = [];
   combinedColumns: string[] = [];
@@ -32,7 +32,7 @@ export class IOSSpecSheetsComponent implements OnInit, OnChanges {
 currentPdfUrl: string = '';
   refreshKey: number = Date.now();
   showPdfModal: boolean = false;
-
+  tabTitle: string = '';
 
   constructor(
     private firestore: Firestore,
@@ -40,17 +40,21 @@ currentPdfUrl: string = '';
     private router: Router,
     private auth: Auth
   ) {}
+  
 
 
 
   async ngOnInit(): Promise<void> {
     this.activeTabId = this.route.snapshot.paramMap.get('id');
+    
     if (this.activeTabId) {
       console.log(`📌 Selected Tab ID: ${this.activeTabId}`);
+      await this.loadTabTitle(this.activeTabId);
       await this.loadSpecSheet();
     } else {
       console.error("❌ No tabId found in URL.");
     }
+  
 
     onAuthStateChanged(this.auth, async (user) => {
       if (user) {
@@ -60,6 +64,15 @@ currentPdfUrl: string = '';
         console.error("❌ User is not authenticated.");
       }
     });
+  }
+  async loadTabTitle(tabId: string) {
+    const tabRef = doc(this.firestore, `tabs/${tabId}`);
+    const tabSnap = await getDoc(tabRef);
+  
+    if (tabSnap.exists()) {
+      const tabData: any = tabSnap.data();
+      this.tabTitle = tabData.name || 'Unnamed Tab';
+    }
   }
   onSwipeBack() {
     console.log('Swipe detected: navigating back to tabs.');
@@ -214,5 +227,7 @@ currentPdfUrl: string = '';
       this.showPdfModal = true;
     }, 100); // delay of 100ms (adjust if needed)
   }
+
+  
 }
 

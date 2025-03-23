@@ -1,0 +1,71 @@
+<div class="ios-spec-sheet-container" (swipeRight)="goBack()">
+    <div class="header">
+        <button class="none" (click)="goBack()">
+            <span class="material-icons">keyboard_double_arrow_left</span>
+        </button>
+  
+            <h2 class="tab-title">{{ tabTitle }}</h2>
+       
+      </div>
+      
+
+
+  
+  
+<div class="card" *ngFor="let contact of contacts$ | async">
+    <ng-container [ngSwitch]="contact.type.toLowerCase()">
+  
+      <!-- Phone -->
+      <a *ngSwitchCase="'phone'" [href]="'tel:' + contact.value" class="card-items">
+        <i class="material-icons">call</i>
+        <div>
+          <div class="contact-label">{{ contact.label || 'Phone' }}</div>
+          <div class="contact-value">{{ contact.value }}</div>
+        </div>
+      </a>
+  
+      <!-- Email -->
+      <a *ngSwitchCase="'email'" [href]="'mailto:' + contact.value" class="card-items">
+        <i class="material-icons">mail</i>
+        <div>
+          <div class="contact-label">{{ contact.label || 'Email' }}</div>
+          <div class="contact-value">{{ contact.value }}</div>
+        </div>
+      </a>
+  
+      <!-- Address (Apple Maps) -->
+      <a *ngSwitchCase="'address'" [href]="'https://maps.apple.com/?q=' + encode(contact.value)" target="_blank" class="card-items">        <i class="material-icons">place</i>
+        <div>
+          <div class="contact-label">{{ contact.label || 'Address' }}</div>
+          <div class="contact-value">{{ contact.value }}</div>
+        </div>
+      </a>
+  
+      <!-- Website -->
+      <a *ngSwitchCase="'website'" [href]="contact.value" target="_blank" class="card-items">
+        <i class="material-icons">language</i>
+        <div>
+          <div class="contact-label">{{ contact.label || 'Website' }}</div>
+          <div class="contact-value">{{ contact.value }}</div>
+        </div>
+      </a>
+  
+      <!-- Fax -->
+      <div *ngSwitchCase="'fax'" class="card-items">
+        <i class="material-icons">print</i>
+        <div>
+          <div class="contact-label">{{ contact.label || 'Fax' }}</div>
+          <div class="contact-value">{{ contact.value }}</div>
+        </div>
+      </div>
+  
+      <!-- Fallback -->
+      <div *ngSwitchDefault class="card-items">
+        <i class="material-icons">contact_mail</i>
+        <div>
+          <div class="contact-label">{{ contact.label || contact.type }}</div>
+          <div class="contact-value">{{ contact.value }}</div>
+        </div>
+      </div>
+    </ng-container>
+  </div>

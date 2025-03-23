@@ -76,8 +76,7 @@
     flex-grow: 1; /* 🔥 Ensures content takes full width */
     padding: 8px;
     overflow: auto;
-
-    background: #212121;
+    background: #000;
 }
 
 .app-toolbar {

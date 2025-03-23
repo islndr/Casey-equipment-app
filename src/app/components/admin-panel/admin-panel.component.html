@@ -1,36 +1,41 @@
 <div class="container my-4 p-4 shadow rounded">
     <h3 class="text-uppercase fw-light m-0">User Management 👥</h3>
-
+  
     <!-- ✅ Add User Form -->
     <h3>Create New User</h3>
     <form (ngSubmit)="addUser()">
       <div>
-        <label>Email:</label>
-        <input class="form-control" type="email" [(ngModel)]="newUserEmail" name="newUserEmail" placeholder="Enter email" required />
+        <input  type="text" [(ngModel)]="newUserName" name="newUserName" placeholder="Name" required />
       </div>
-    
+  
       <div>
-        <label>Password:</label>
-        <input class="form-control" type="password" [(ngModel)]="newUserPassword" name="newUserPassword" placeholder="Enter password" required />
+
+        <input  type="email" [(ngModel)]="newUserEmail" name="newUserEmail" placeholder="Email" required />
       </div>
-    
+  
+      <div>
+        <input  type="password" [(ngModel)]="newUserPassword" name="newUserPassword" placeholder="Password" required />
+      </div>
+  
       <div>
         <label>Role:</label>
         <select class="form-select" [(ngModel)]="newUserRole" name="newUserRole">
+          <option value="" disabled selected>Select Type</option>
           <option value="admin">Admin</option>
           <option value="editor">Editor</option>
           <option value="viewer">Viewer</option>
         </select>
       </div>
-    
-      <button class="btn btn-primary btn-sm" type="submit">Create User</button>
+  
+      <button class="btn btn-primary btn-sm" type="submit">➕ Add User</button>
     </form>
   
     <!-- ✅ User Table -->
-    <div class="table-responsive">
+    <div class="table-responsive mt-4">
       <table class="table table-striped">
         <thead>
           <tr>
+            <th>Name</th>
             <th>Email</th>
             <th>Role</th>
             <th>Actions</th>
@@ -38,18 +43,19 @@
         </thead>
         <tbody>
           <tr *ngFor="let user of users">
+            <td>{{ user.name || '—' }}</td>
             <td>{{ user.email }}</td>
             <td>
               <select class="form-select" [(ngModel)]="user.role" (change)="updateUserRole(user)">
                 <option value="admin">Admin</option>
                 <option value="editor">Editor</option>
-                <option value="viewer">Disable</option>
+                <option value="viewer">Viewer</option>
               </select>
             </td>
             <td>
-                <button class="btn btn-danger btn-sm" (click)="removeUser(user)">🗑️ Delete</button>
+              <button class="btn btn-danger btn-sm" (click)="removeUser(user)">🗑️ Delete</button>
             </td>
-        </tr>
+          </tr>
         </tbody>
       </table>
     </div>

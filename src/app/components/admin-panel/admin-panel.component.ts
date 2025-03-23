@@ -10,6 +10,7 @@ import { AuthService } from '../../services/auth.service';
 
 interface User {
   id: string;
+  name: string;
   email: string;
   role: string;
 }
@@ -35,8 +36,9 @@ interface User {
   
 export class AdminPanelComponent implements OnInit {
   users: User[] = [];
+  newUserName: string = '';
   newUserEmail: string = '';
-  newUserRole: string = 'editor';
+  newUserRole: string = '';
   newUserPassword: string = ''; 
   private usersSubscription!: Subscription;
 
@@ -54,6 +56,7 @@ export class AdminPanelComponent implements OnInit {
       try {
         this.users = (await this.authService.getAllUsers()).map(user => ({
           id: user.id,
+          name: user['name'] || '', // Assuming 'name' is a field in your user document
           email: user['email'],
           role: user['role']
         }));
@@ -75,9 +78,10 @@ export class AdminPanelComponent implements OnInit {
       alert(`✅ User ${this.newUserEmail} created successfully.`);
       
       // Clear the form after successful user creation
+      this.newUserName = ''; 
       this.newUserEmail = '';
       this.newUserPassword = '';
-      this.newUserRole = 'viewer';
+      this.newUserRole = '';
   
       // Reload the user list
       this.loadUsers();
