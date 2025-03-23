@@ -1,4 +1,4 @@
-<mat-toolbar color="primary" class="app-toolbar">
+<mat-toolbar *ngIf="!isRouteActive('/hero')" color="primary" class="app-toolbar">
     <img src="assets/logo-2.png" alt="Casey Equipment" class="app-logo">
     <span>Casey Equipment App</span>
     <span class="spacer"></span>
@@ -36,9 +36,7 @@
             <button class="sidebar-toggle" (click)="toggleSidebar()">
                 <i class="fas" [ngClass]="{'fa-angle-double-left': isSidebarOpen, 'fa-angle-double-right': !isSidebarOpen}"></i>
               </button>
-  
-              
-    </div>
+      </div>
    
  <!-- Main Content -->
  <div class="content">

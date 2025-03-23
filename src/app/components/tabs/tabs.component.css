@@ -1,11 +1,11 @@
 /* ✅ Tab Container - More Refined */
 .container {
-    background-color: #2C2C2C;
+    background-color: #1b1b1b;
     padding-bottom: 1px;
 }
 
 .tab-container {
-    background-color: #2C2C2C;
+    background-color: #1b1b1b;
    border: none;
     display: flex;
     flex-wrap: wrap;

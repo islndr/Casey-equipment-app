@@ -1,5 +1,5 @@
 // src/app/app.component.ts
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { RouterModule, RouterOutlet } from '@angular/router';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatSidenavModule } from '@angular/material/sidenav';
@@ -8,8 +8,7 @@ import { MatListModule } from '@angular/material/list';
 import { MatButtonModule } from '@angular/material/button';
 import { AuthService } from './services/auth.service';
 import { CommonModule } from '@angular/common';
-
-
+import { Router } from '@angular/router'; 
 import { HammerModule, HAMMER_GESTURE_CONFIG } from '@angular/platform-browser';
 import { MyHammerConfig } from '../hammer.config';
 
@@ -39,10 +38,29 @@ import { MyHammerConfig } from '../hammer.config';
   templateUrl: `./app.component.html`,
   styleUrls: ['./app.component.css']
 })
-export class AppComponent {
-  constructor(public authService: AuthService) {}
+export class AppComponent implements OnInit {
+  constructor(public authService: AuthService, private router: Router) {}
   title = 'casey-equipment-app';
   isSidebarOpen = true; // Default state
+  ngOnInit() {
+    // Detect if running on an iOS device
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+  
+    if (isIOS) {
+      console.log("iOS device detected: redirecting to /iostabs");
+      this.router.navigate(['/iostabs']);
+    } else {
+      // For non-iOS devices, you can still use your original logic
+      console.log("Running in browser: redirecting to /hero");
+      if (this.router.url === '/' || this.router.url === '/index.html') {
+        this.router.navigate(['/hero']);
+      }
+    }
+  }
+
+    isRouteActive(route: string): boolean {
+      return this.router.url.includes(route);
+    }
 
   toggleSidebar() {
     this.isSidebarOpen = !this.isSidebarOpen;

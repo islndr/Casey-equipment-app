@@ -114,7 +114,7 @@ export class AuthService {
       sessionStorage.removeItem('user');
       this.currentUser = null;
       this.userRole = null;
-      this.router.navigate(['/login']);
+      this.router.navigate(['/hero']);
     } catch (error) {
       console.error('❌ Logout error:', error);
     }

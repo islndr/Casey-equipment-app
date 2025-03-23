@@ -12,7 +12,7 @@
   padding: 12px;
   font-size: 12px;
   font-weight: bold;
-  background: #3A3A3A;
+  background: #1b1b1b;
   color: #FFC107;
   border-bottom: 2px solid #5A5A5A;
   border-left: none;
@@ -58,6 +58,7 @@
 
 .sort-icon {
   cursor: pointer;
+  color: #5a5a5a;
 }
 
 .sort-icon:hover {
@@ -107,3 +108,9 @@ width: 50px;
   width: 113px;
 }
 
+.btn-arrow {
+  color:#5A5A5A;
+}
+.btn-arrow:hover {
+  color: #FFC107
+}

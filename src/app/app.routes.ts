@@ -10,10 +10,12 @@ import { IOSSpecSheetsComponent } from './components/ios-spec-sheets/ios-spec-sh
 import { PdfViewerComponent } from './components/ios-pdf-viewer/ios-pdf-viewer.component';
 import { ContactManagementComponent } from './components/contact-management/contact-management.component';
 import { IOSContactComponent } from './components/ios-contact/ios-contact.component';
+import { FrontPageComponent } from './components/front-page.component';
+
 
 
 export const routes: Routes = [
-  { path: '', component: IOSTabsComponent }, // Default to Tabs
+    { path: '', redirectTo: 'hero', pathMatch: 'full' },
   { path: 'iostabs', component: IOSTabsComponent }, // Default to Tabs
   { path: 'spec-sheets/:id', component: IOSSpecSheetsComponent },
   { path: 'login', component: LoginComponent },
@@ -22,8 +24,10 @@ export const routes: Routes = [
   { path: 'ios', component: IOSAppComponent },
   { path: 'ios-pdf-viewer', component: PdfViewerComponent },
   { path: 'contact', component: ContactManagementComponent },
+  { path: 'hero', component: FrontPageComponent },
   { path: 'ios-contact', component: IOSContactComponent },
-  { path: '**', redirectTo: '/ios' },
+  { path: '**', redirectTo: '/hero' },
+  
   {
     path: 'ios-pdf-viewer',
     loadComponent: () =>
