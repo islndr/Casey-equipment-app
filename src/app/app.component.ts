@@ -9,6 +9,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { AuthService } from './services/auth.service';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router'; 
+import { getApps } from 'firebase/app';
 import { HammerModule, HAMMER_GESTURE_CONFIG } from '@angular/platform-browser';
 import { MyHammerConfig } from '../hammer.config';
 
@@ -42,14 +43,18 @@ export class AppComponent implements OnInit {
   constructor(public authService: AuthService, private router: Router) {}
   title = 'casey-equipment-app';
   isSidebarOpen = true; // Default state
+  
   ngOnInit() {
     // Detect if running on an iOS device
     const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+    
   
     if (isIOS) {
       console.log("iOS device detected: redirecting to /iostabs");
       this.router.navigate(['/iostabs']);
     }
+  
+console.log('Firebase initialized:', getApps().length);
   }
 
     isRouteActive(route: string): boolean {

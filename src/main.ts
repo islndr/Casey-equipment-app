@@ -15,11 +15,9 @@ import { AuthGuard } from './app/guards/auth.guard';
 import { PdfViewerComponent } from './app/components/ios-pdf-viewer/ios-pdf-viewer.component';
 import { AppComponent } from './app/app.component';
 import { IOSSpecSheetsComponent } from './app/components/ios-spec-sheets/ios-spec-sheets.component';
-import { defineCustomElements } from 'ionicons/dist/loader';
 
 
 
-defineCustomElements(window);
 bootstrapApplication(AppComponent, {
   providers: [
     provideRouter(routes),
@@ -31,4 +29,5 @@ bootstrapApplication(AppComponent, {
     importProvidersFrom(BrowserAnimationsModule, MatSidenavModule, MatToolbarModule, MatListModule),
     PdfViewerComponent
   ]
+  
 }).catch(err => console.error(err));

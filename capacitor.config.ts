@@ -6,7 +6,7 @@ const config: CapacitorConfig = {
   webDir: 'dist/casey-equipment-app/browser',
   server: {
     cleartext: true,
-    // url: 'http://localhost:4200'
+   
   },
 
 };
