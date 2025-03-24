@@ -49,12 +49,6 @@ export class AppComponent implements OnInit {
     if (isIOS) {
       console.log("iOS device detected: redirecting to /iostabs");
       this.router.navigate(['/iostabs']);
-    } else {
-      // For non-iOS devices, you can still use your original logic
-      console.log("Running in browser: redirecting to /hero");
-      if (this.router.url === '/' || this.router.url === '/index.html') {
-        this.router.navigate(['/hero']);
-      }
     }
   }
 
